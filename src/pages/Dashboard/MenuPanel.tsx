@@ -11,9 +11,9 @@ import {
 import { usePolling } from "../../lib/usePolling";
 import { formatPrice } from "../../lib/format";
 
-export default function MenuPanel() {
-  const categoriesFetcher = useCallback(() => getCategories(), []);
-  const itemsFetcher = useCallback(() => getMenuItems(), []);
+export default function MenuPanel({ restaurantId }: { restaurantId: string }) {
+  const categoriesFetcher = useCallback(() => getCategories(restaurantId), [restaurantId]);
+  const itemsFetcher = useCallback(() => getMenuItems(restaurantId), [restaurantId]);
   const { data: categories, error: categoriesError, refetch: refetchCategories } = usePolling(
     categoriesFetcher,
     5000
@@ -29,7 +29,7 @@ export default function MenuPanel() {
     if (!categoryName.trim()) return;
     setFormError(null);
     try {
-      await createCategory({ name: categoryName.trim() });
+      await createCategory({ restaurantId, name: categoryName.trim() });
       setCategoryName("");
       refetchCategories();
     } catch (err) {
@@ -66,6 +66,7 @@ export default function MenuPanel() {
     setFormError(null);
     try {
       await createMenuItem({
+        restaurantId,
         categoryId,
         name: draft.name.trim(),
         description: draft.description?.trim() || undefined,
