@@ -258,6 +258,13 @@ select {
   margin-bottom: 1.5rem;
 }
 
+.form-row label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text);
+}
+
 .category-block h3 {
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.4rem;

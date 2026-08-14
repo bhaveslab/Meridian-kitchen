@@ -1,16 +1,16 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import GuestOrderPage from "./pages/Guest/GuestOrderPage";
-import KitchenPage from "./pages/Kitchen/KitchenPage";
-import FloorPage from "./pages/Floor/FloorPage";
+import StorefrontPage from "./pages/Storefront/StorefrontPage";
+import OrderStatusPage from "./pages/Storefront/OrderStatusPage";
+import DashboardPage from "./pages/Dashboard/DashboardPage";
 import Home from "./pages/Home";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/guest/:token" element={<GuestOrderPage />} />
-      <Route path="/kitchen" element={<KitchenPage />} />
-      <Route path="/floor" element={<FloorPage />} />
+      <Route path="/r/:slug" element={<StorefrontPage />} />
+      <Route path="/r/:slug/order/:orderId" element={<OrderStatusPage />} />
+      <Route path="/dashboard/:slug" element={<DashboardPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

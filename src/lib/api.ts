@@ -1,11 +1,12 @@
 import type {
-  CreateOrderInput,
-  GuestMenuResponse,
+  CheckoutInput,
+  CheckoutResponse,
   MenuCategory,
   MenuItem,
   Order,
   OrderStatus,
-  RestaurantTable,
+  PaymentStatus,
+  StorefrontResponse,
 } from "../../shared/types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -21,19 +22,31 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+// Storefront (public, per-restaurant)
+export const getStorefront = (slug: string) => request<StorefrontResponse>(`/api/restaurants/${slug}`);
+
+// Checkout
+export const checkout = (input: CheckoutInput) =>
+  request<CheckoutResponse>("/api/checkout", { method: "POST", body: JSON.stringify(input) });
+
 // Categories
-export const getCategories = () => request<MenuCategory[]>("/api/categories");
-export const createCategory = (input: { name: string; sortOrder?: number }) =>
+export const getCategories = (restaurantId: string) =>
+  request<MenuCategory[]>(`/api/categories?restaurantId=${restaurantId}`);
+export const createCategory = (input: { restaurantId: string; name: string; sortOrder?: number }) =>
   request<MenuCategory>("/api/categories", { method: "POST", body: JSON.stringify(input) });
 export const updateCategory = (id: string, input: Partial<{ name: string; sortOrder: number }>) =>
   request<MenuCategory>(`/api/categories/${id}`, { method: "PATCH", body: JSON.stringify(input) });
-export const deleteCategory = (id: string) =>
-  request<void>(`/api/categories/${id}`, { method: "DELETE" });
+export const deleteCategory = (id: string) => request<void>(`/api/categories/${id}`, { method: "DELETE" });
 
 // Menu items
-export const getMenuItems = (categoryId?: string) =>
-  request<MenuItem[]>(categoryId ? `/api/menu-items?categoryId=${categoryId}` : "/api/menu-items");
+export const getMenuItems = (restaurantId: string, categoryId?: string) =>
+  request<MenuItem[]>(
+    categoryId
+      ? `/api/menu-items?restaurantId=${restaurantId}&categoryId=${categoryId}`
+      : `/api/menu-items?restaurantId=${restaurantId}`
+  );
 export const createMenuItem = (input: {
+  restaurantId: string;
   categoryId: string;
   name: string;
   description?: string;
@@ -52,31 +65,15 @@ export const updateMenuItem = (
     sortOrder: number;
   }>
 ) => request<MenuItem>(`/api/menu-items/${id}`, { method: "PATCH", body: JSON.stringify(input) });
-export const deleteMenuItem = (id: string) =>
-  request<void>(`/api/menu-items/${id}`, { method: "DELETE" });
+export const deleteMenuItem = (id: string) => request<void>(`/api/menu-items/${id}`, { method: "DELETE" });
 
-// Tables
-export const getTables = () => request<RestaurantTable[]>("/api/tables");
-export const createTable = (input: { label: string; seats?: number }) =>
-  request<RestaurantTable>("/api/tables", { method: "POST", body: JSON.stringify(input) });
-export const updateTable = (id: string, input: Partial<{ label: string; seats: number }>) =>
-  request<RestaurantTable>(`/api/tables/${id}`, { method: "PATCH", body: JSON.stringify(input) });
-export const deleteTable = (id: string) => request<void>(`/api/tables/${id}`, { method: "DELETE" });
-
-// Guest
-export const getGuestMenu = (token: string) =>
-  request<GuestMenuResponse>(`/api/tables/by-token/${token}`);
-
-// Orders
-export const getOrders = (filter?: { statuses?: OrderStatus[]; tableId?: string }) => {
-  const params = new URLSearchParams();
-  if (filter?.statuses?.length) params.set("status", filter.statuses.join(","));
-  if (filter?.tableId) params.set("tableId", filter.tableId);
-  const qs = params.toString();
-  return request<Order[]>(`/api/orders${qs ? `?${qs}` : ""}`);
+// Orders (restaurant dashboard)
+export const getOrders = (filter: { restaurantId: string; statuses?: OrderStatus[]; paymentStatuses?: PaymentStatus[] }) => {
+  const params = new URLSearchParams({ restaurantId: filter.restaurantId });
+  if (filter.statuses?.length) params.set("status", filter.statuses.join(","));
+  if (filter.paymentStatuses?.length) params.set("paymentStatus", filter.paymentStatuses.join(","));
+  return request<Order[]>(`/api/orders?${params.toString()}`);
 };
 export const getOrder = (id: string) => request<Order>(`/api/orders/${id}`);
-export const createOrder = (input: CreateOrderInput) =>
-  request<Order>("/api/orders", { method: "POST", body: JSON.stringify(input) });
 export const updateOrderStatus = (id: string, status: OrderStatus) =>
   request<Order>(`/api/orders/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
