@@ -102,6 +102,49 @@ select {
   font-size: 0.9rem;
 }
 
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.language-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.language-toggle button {
+  border: none;
+  border-radius: 0;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  background: transparent;
+}
+
+.language-toggle button.active {
+  background: var(--accent);
+  color: white;
+}
+
+.price-estimate {
+  color: var(--text-dim);
+  font-size: 0.85em;
+}
+
+.needs-pricing-badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: var(--in_progress);
+  color: white;
+  margin-left: 0.4rem;
+}
+
 .status-badge {
   display: inline-block;
   padding: 0.15rem 0.6rem;

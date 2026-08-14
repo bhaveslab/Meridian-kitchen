@@ -6,8 +6,12 @@ import type {
   Order,
   OrderStatus,
   PaymentStatus,
+  Restaurant,
   StorefrontResponse,
+  Translations,
+  VariantOption,
 } from "../../shared/types";
+import type { FoodGuideCategoryKey } from "../../shared/foodGuide";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -24,6 +28,11 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 // Storefront (public, per-restaurant)
 export const getStorefront = (slug: string) => request<StorefrontResponse>(`/api/restaurants/${slug}`);
+export const updateExchangeRate = (slug: string, usdHnlExchangeRate: number) =>
+  request<Restaurant>(`/api/restaurants/${slug}`, {
+    method: "PATCH",
+    body: JSON.stringify({ usdHnlExchangeRate }),
+  });
 
 // Checkout
 export const checkout = (input: CheckoutInput) =>
@@ -32,10 +41,16 @@ export const checkout = (input: CheckoutInput) =>
 // Categories
 export const getCategories = (restaurantId: string) =>
   request<MenuCategory[]>(`/api/categories?restaurantId=${restaurantId}`);
-export const createCategory = (input: { restaurantId: string; name: string; sortOrder?: number }) =>
-  request<MenuCategory>("/api/categories", { method: "POST", body: JSON.stringify(input) });
-export const updateCategory = (id: string, input: Partial<{ name: string; sortOrder: number }>) =>
-  request<MenuCategory>(`/api/categories/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+export const createCategory = (input: {
+  restaurantId: string;
+  name: string;
+  sortOrder?: number;
+  translations?: Translations;
+}) => request<MenuCategory>("/api/categories", { method: "POST", body: JSON.stringify(input) });
+export const updateCategory = (
+  id: string,
+  input: Partial<{ name: string; sortOrder: number; translations: Translations }>
+) => request<MenuCategory>(`/api/categories/${id}`, { method: "PATCH", body: JSON.stringify(input) });
 export const deleteCategory = (id: string) => request<void>(`/api/categories/${id}`, { method: "DELETE" });
 
 // Menu items
@@ -51,8 +66,12 @@ export const createMenuItem = (input: {
   name: string;
   description?: string;
   priceCents: number;
+  needsPricing?: boolean;
   isAvailable?: boolean;
   sortOrder?: number;
+  translations?: Translations;
+  foodGuideTags?: FoodGuideCategoryKey[];
+  variantOptions?: VariantOption[];
 }) => request<MenuItem>("/api/menu-items", { method: "POST", body: JSON.stringify(input) });
 export const updateMenuItem = (
   id: string,
@@ -61,8 +80,12 @@ export const updateMenuItem = (
     name: string;
     description: string;
     priceCents: number;
+    needsPricing: boolean;
     isAvailable: boolean;
     sortOrder: number;
+    translations: Translations;
+    foodGuideTags: FoodGuideCategoryKey[];
+    variantOptions: VariantOption[];
   }>
 ) => request<MenuItem>(`/api/menu-items/${id}`, { method: "PATCH", body: JSON.stringify(input) });
 export const deleteMenuItem = (id: string) => request<void>(`/api/menu-items/${id}`, { method: "DELETE" });
