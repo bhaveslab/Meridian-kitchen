@@ -9,9 +9,13 @@ import {
   updateMenuItem,
 } from "../../lib/api";
 import { usePolling } from "../../lib/usePolling";
-import { formatPrice } from "../../lib/format";
+import { useLanguage } from "../../lib/LanguageContext";
+import { translatedName } from "../../lib/translated";
+import Price from "../../components/Price";
+import ItemEditForm from "./ItemEditForm";
 
-export default function MenuPanel({ restaurantId }: { restaurantId: string }) {
+export default function MenuPanel({ restaurantId, exchangeRate }: { restaurantId: string; exchangeRate: number }) {
+  const { locale, t } = useLanguage();
   const categoriesFetcher = useCallback(() => getCategories(restaurantId), [restaurantId]);
   const itemsFetcher = useCallback(() => getMenuItems(restaurantId), [restaurantId]);
   const { data: categories, error: categoriesError, refetch: refetchCategories } = usePolling(
@@ -21,16 +25,23 @@ export default function MenuPanel({ restaurantId }: { restaurantId: string }) {
   const { data: items, error: itemsError, refetch: refetchItems } = usePolling(itemsFetcher, 5000);
 
   const [categoryName, setCategoryName] = useState("");
+  const [categoryNameEs, setCategoryNameEs] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [newItem, setNewItem] = useState<Record<string, { name: string; description: string; price: string }>>({});
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   async function handleAddCategory(e: FormEvent) {
     e.preventDefault();
     if (!categoryName.trim()) return;
     setFormError(null);
     try {
-      await createCategory({ restaurantId, name: categoryName.trim() });
+      await createCategory({
+        restaurantId,
+        name: categoryName.trim(),
+        translations: categoryNameEs.trim() ? { es: { name: categoryNameEs.trim() } } : undefined,
+      });
       setCategoryName("");
+      setCategoryNameEs("");
       refetchCategories();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Could not create category");
@@ -102,11 +113,16 @@ export default function MenuPanel({ restaurantId }: { restaurantId: string }) {
     <div>
       <form className="form-row" onSubmit={handleAddCategory}>
         <input
-          placeholder="New category (e.g. Appetizers)"
+          placeholder="New category (EN)"
           value={categoryName}
           onChange={(e) => setCategoryName(e.target.value)}
         />
-        <button type="submit">Add category</button>
+        <input
+          placeholder="Nueva categoría (ES, opcional)"
+          value={categoryNameEs}
+          onChange={(e) => setCategoryNameEs(e.target.value)}
+        />
+        <button type="submit">{t("addCategory")}</button>
       </form>
 
       {(formError || categoriesError || itemsError) && (
@@ -122,28 +138,49 @@ export default function MenuPanel({ restaurantId }: { restaurantId: string }) {
           return (
             <section className="category-block" key={category.id}>
               <div className="table-card-header">
-                <h3>{category.name}</h3>
+                <h3>{translatedName(category.name, category.translations, locale)}</h3>
                 <button type="button" onClick={() => handleDeleteCategory(category.id)}>
-                  Delete category
+                  {t("deleteCategory")}
                 </button>
               </div>
 
-              {categoryItems.map((item) => (
-                <div className={`item-row ${item.isAvailable ? "" : "unavailable"}`} key={item.id}>
-                  <div className="item-info">
-                    <strong>{item.name}</strong> — {formatPrice(item.priceCents)}
-                    {item.description && <div className="item-desc">{item.description}</div>}
+              {categoryItems.map((item) =>
+                editingItemId === item.id ? (
+                  <ItemEditForm
+                    key={item.id}
+                    item={item}
+                    onCancel={() => setEditingItemId(null)}
+                    onSave={async (updates) => {
+                      await updateMenuItem(item.id, updates);
+                      setEditingItemId(null);
+                      refetchItems();
+                    }}
+                  />
+                ) : (
+                  <div className={`item-row ${item.isAvailable ? "" : "unavailable"}`} key={item.id}>
+                    <div className="item-info">
+                      <strong>{translatedName(item.name, item.translations, locale)}</strong> —{" "}
+                      <Price cents={item.priceCents} exchangeRate={exchangeRate} />
+                      {item.needsPricing && <span className="needs-pricing-badge">{t("needsPricing")}</span>}
+                      {item.description && <div className="item-desc">{item.description}</div>}
+                      {item.foodGuideTags.length > 0 && (
+                        <div className="item-desc">{item.foodGuideTags.join(", ")}</div>
+                      )}
+                    </div>
+                    <div className="order-actions">
+                      <button type="button" onClick={() => setEditingItemId(item.id)}>
+                        Edit
+                      </button>
+                      <button type="button" onClick={() => toggleAvailability(item.id, item.isAvailable)}>
+                        {item.isAvailable ? t("markUnavailable") : t("markAvailable")}
+                      </button>
+                      <button type="button" onClick={() => handleDeleteItem(item.id)}>
+                        {t("delete")}
+                      </button>
+                    </div>
                   </div>
-                  <div className="order-actions">
-                    <button type="button" onClick={() => toggleAvailability(item.id, item.isAvailable)}>
-                      {item.isAvailable ? "Mark 86'd" : "Mark available"}
-                    </button>
-                    <button type="button" onClick={() => handleDeleteItem(item.id)}>
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
+                )
+              )}
 
               <form className="form-row" onSubmit={(e) => handleAddItem(category.id, e)}>
                 <input
@@ -165,7 +202,7 @@ export default function MenuPanel({ restaurantId }: { restaurantId: string }) {
                   onChange={(e) => updateDraft(category.id, "price", e.target.value)}
                   style={{ maxWidth: 100 }}
                 />
-                <button type="submit">Add item</button>
+                <button type="submit">{t("addItem")}</button>
               </form>
             </section>
           );

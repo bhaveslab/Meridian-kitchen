@@ -1,28 +1,32 @@
 import { useCallback, useState } from "react";
 import { getOrders, updateOrderStatus } from "../../lib/api";
 import { usePolling } from "../../lib/usePolling";
+import { useLanguage } from "../../lib/LanguageContext";
 import { formatTime, minutesSince } from "../../lib/format";
+import Price from "../../components/Price";
 import { ACTIVE_ORDER_STATUSES } from "../../../shared/types";
 import type { Order, OrderStatus } from "../../../shared/types";
+import type { UiStringKey } from "../../../shared/i18n";
 
-function getNextStep(order: Order): { label: string; next: OrderStatus } | null {
+function getNextStep(order: Order): { labelKey: UiStringKey; next: OrderStatus } | null {
   switch (order.status) {
     case "received":
-      return { label: "Start preparing", next: "preparing" };
+      return { labelKey: "startPreparing", next: "preparing" };
     case "preparing":
-      return { label: "Mark ready", next: "ready" };
+      return { labelKey: "markReady", next: "ready" };
     case "ready":
       return order.fulfillmentType === "delivery"
-        ? { label: "Out for delivery", next: "out_for_delivery" }
-        : { label: "Complete", next: "completed" };
+        ? { labelKey: "outForDelivery", next: "out_for_delivery" }
+        : { labelKey: "complete", next: "completed" };
     case "out_for_delivery":
-      return { label: "Complete", next: "completed" };
+      return { labelKey: "complete", next: "completed" };
     default:
       return null;
   }
 }
 
-export default function OrdersPanel({ restaurantId }: { restaurantId: string }) {
+export default function OrdersPanel({ restaurantId, exchangeRate }: { restaurantId: string; exchangeRate: number }) {
+  const { t } = useLanguage();
   const fetcher = useCallback(
     () => getOrders({ restaurantId, statuses: ACTIVE_ORDER_STATUSES }),
     [restaurantId]
@@ -60,7 +64,7 @@ export default function OrdersPanel({ restaurantId }: { restaurantId: string }) 
     <div>
       {error && <div className="error-banner">{error}</div>}
       {sorted.length === 0 ? (
-        <p className="empty-state">No active orders.</p>
+        <p className="empty-state">{t("noActiveOrders")}</p>
       ) : (
         <div className="board">
           {sorted.map((order) => {
@@ -72,7 +76,7 @@ export default function OrdersPanel({ restaurantId }: { restaurantId: string }) 
                   <span className={`status-badge ${order.status}`}>{order.status.replace(/_/g, " ")}</span>
                 </div>
                 <div className="order-meta">
-                  {order.fulfillmentType === "delivery" ? "Delivery" : "Pickup"} · Placed{" "}
+                  {order.fulfillmentType === "delivery" ? t("delivery") : t("pickup")} · Placed{" "}
                   {formatTime(order.createdAt)} · {minutesSince(order.createdAt)} min ago
                 </div>
                 {order.fulfillmentType === "delivery" && order.deliveryAddress && (
@@ -84,7 +88,11 @@ export default function OrdersPanel({ restaurantId }: { restaurantId: string }) 
                     <li key={item.id}>
                       <span>
                         <span className="qty">{item.quantity}×</span> {item.menuItemName}
+                        {Object.values(item.selectedVariants).length > 0 && (
+                          <span className="order-meta"> ({Object.values(item.selectedVariants).join(", ")})</span>
+                        )}
                       </span>
+                      <Price cents={item.unitPriceCents * item.quantity} exchangeRate={exchangeRate} />
                     </li>
                   ))}
                 </ul>
@@ -92,11 +100,11 @@ export default function OrdersPanel({ restaurantId }: { restaurantId: string }) 
                 <div className="order-actions">
                   {step && (
                     <button type="button" onClick={() => advance(order)} disabled={pendingId === order.id}>
-                      {step.label}
+                      {t(step.labelKey)}
                     </button>
                   )}
                   <button type="button" onClick={() => cancel(order)} disabled={pendingId === order.id}>
-                    Cancel
+                    {t("cancel")}
                   </button>
                 </div>
               </div>
