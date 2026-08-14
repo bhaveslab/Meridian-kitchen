@@ -1,11 +1,16 @@
 import { query, mapOrderItem } from "./_db";
-import type { Order, OrderItem, OrderStatus } from "../shared/types";
+import type { Order, OrderItem, OrderStatus, PaymentStatus } from "../shared/types";
 
 interface OrderRow {
   id: string;
-  table_id: string;
-  table_label: string;
+  restaurant_id: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_email: string | null;
+  fulfillment_type: Order["fulfillmentType"];
+  delivery_address: string | null;
   status: OrderStatus;
+  payment_status: PaymentStatus;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -14,9 +19,14 @@ interface OrderRow {
 function toOrder(row: OrderRow, items: OrderItem[]): Order {
   return {
     id: row.id,
-    tableId: row.table_id,
-    tableLabel: row.table_label,
+    restaurantId: row.restaurant_id,
+    customerName: row.customer_name,
+    customerPhone: row.customer_phone,
+    customerEmail: row.customer_email,
+    fulfillmentType: row.fulfillment_type,
+    deliveryAddress: row.delivery_address,
     status: row.status,
+    paymentStatus: row.payment_status,
     notes: row.notes,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -46,28 +56,29 @@ async function fetchItemsForOrders(orderIds: string[]): Promise<Map<string, Orde
   return itemsByOrder;
 }
 
-export async function fetchOrders(filter: { statuses?: OrderStatus[]; tableId?: string }): Promise<Order[]> {
-  const { statuses, tableId } = filter;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+export async function fetchOrders(filter: {
+  restaurantId: string;
+  statuses?: OrderStatus[];
+  paymentStatuses?: PaymentStatus[];
+}): Promise<Order[]> {
+  const { restaurantId, statuses, paymentStatuses } = filter;
+  const params: unknown[] = [restaurantId];
+  const conditions = ["o.restaurant_id = $1"];
 
   if (statuses && statuses.length > 0) {
     params.push(statuses);
     conditions.push(`o.status = ANY($${params.length})`);
   }
-  if (tableId) {
-    params.push(tableId);
-    conditions.push(`o.table_id = $${params.length}`);
+  if (paymentStatuses && paymentStatuses.length > 0) {
+    params.push(paymentStatuses);
+    conditions.push(`o.payment_status = ANY($${params.length})`);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-  const orderClause = conditions.length > 0 ? "ORDER BY o.created_at ASC" : "ORDER BY o.created_at DESC LIMIT 200";
-
   const { rows: orderRows } = await query<OrderRow>(
-    `SELECT o.*, t.label AS table_label
-     FROM orders o JOIN tables t ON t.id = o.table_id
-     ${where}
-     ${orderClause}`,
+    `SELECT o.* FROM orders o
+     WHERE ${conditions.join(" AND ")}
+     ORDER BY o.created_at ASC
+     LIMIT 200`,
     params
   );
 
@@ -76,12 +87,7 @@ export async function fetchOrders(filter: { statuses?: OrderStatus[]; tableId?: 
 }
 
 export async function fetchOrderById(id: string): Promise<Order | null> {
-  const { rows } = await query<OrderRow>(
-    `SELECT o.*, t.label AS table_label
-     FROM orders o JOIN tables t ON t.id = o.table_id
-     WHERE o.id = $1`,
-    [id]
-  );
+  const { rows } = await query<OrderRow>(`SELECT * FROM orders WHERE id = $1`, [id]);
   if (rows.length === 0) return null;
 
   const itemsByOrder = await fetchItemsForOrders([id]);

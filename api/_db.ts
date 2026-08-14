@@ -1,5 +1,5 @@
 import { sql, db } from "@vercel/postgres";
-import type { MenuCategory, MenuItem, RestaurantTable, OrderItem } from "../shared/types";
+import type { MenuCategory, MenuItem, Restaurant, OrderItem } from "../shared/types";
 
 export { sql, db };
 
@@ -13,9 +13,23 @@ export async function query<T = any>(text: string, params: any[] = []): Promise<
   }
 }
 
+export function mapRestaurant(row: any): Restaurant {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    description: row.description,
+    address: row.address,
+    phone: row.phone,
+    isActive: row.is_active,
+    createdAt: row.created_at,
+  };
+}
+
 export function mapCategory(row: any): MenuCategory {
   return {
     id: row.id,
+    restaurantId: row.restaurant_id,
     name: row.name,
     sortOrder: row.sort_order,
     createdAt: row.created_at,
@@ -25,22 +39,13 @@ export function mapCategory(row: any): MenuCategory {
 export function mapMenuItem(row: any): MenuItem {
   return {
     id: row.id,
+    restaurantId: row.restaurant_id,
     categoryId: row.category_id,
     name: row.name,
     description: row.description,
     priceCents: row.price_cents,
     isAvailable: row.is_available,
     sortOrder: row.sort_order,
-    createdAt: row.created_at,
-  };
-}
-
-export function mapTable(row: any): RestaurantTable {
-  return {
-    id: row.id,
-    label: row.label,
-    seats: row.seats,
-    guestToken: row.guest_token,
     createdAt: row.created_at,
   };
 }
