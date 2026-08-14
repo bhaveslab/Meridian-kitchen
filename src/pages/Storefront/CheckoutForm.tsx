@@ -1,16 +1,22 @@
 import { useState, type FormEvent } from "react";
 import { checkout } from "../../lib/api";
+import { useLanguage } from "../../lib/LanguageContext";
+import { translatedName } from "../../lib/translated";
+import LanguageToggle from "../../components/LanguageToggle";
+import Price from "../../components/Price";
 import { formatPrice } from "../../lib/format";
-import type { FulfillmentType, MenuItem, Restaurant } from "../../../shared/types";
+import type { FulfillmentType, Restaurant } from "../../../shared/types";
+import type { CartEntry } from "./StorefrontPage";
 
 interface Props {
   restaurant: Restaurant;
-  cartEntries: { item: MenuItem; quantity: number }[];
+  cartEntries: CartEntry[];
   totalCents: number;
   onBack: () => void;
 }
 
 export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBack }: Props) {
+  const { locale, t } = useLanguage();
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -34,7 +40,11 @@ export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBa
         fulfillmentType,
         deliveryAddress: fulfillmentType === "delivery" ? deliveryAddress.trim() : undefined,
         notes: notes.trim() || undefined,
-        items: cartEntries.map((e) => ({ menuItemId: e.item.id, quantity: e.quantity })),
+        items: cartEntries.map((e) => ({
+          menuItemId: e.item.id,
+          quantity: e.quantity,
+          selectedVariants: e.selectedVariants,
+        })),
       });
       window.location.href = checkoutUrl;
     } catch (err) {
@@ -43,39 +53,49 @@ export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBa
     }
   }
 
+  const exchangeRate = restaurant.usdHnlExchangeRate;
+
   return (
     <main className="guest-page">
-      <button type="button" onClick={onBack} style={{ marginBottom: "1rem" }}>
-        ← Back to menu
-      </button>
-      <h1>Checkout</h1>
+      <div className="page-header">
+        <button type="button" onClick={onBack}>
+          {t("backToMenu")}
+        </button>
+        <LanguageToggle />
+      </div>
+      <h1>{t("checkout")}</h1>
 
       <ul className="order-items" style={{ marginBottom: "1.5rem" }}>
         {cartEntries.map((e) => (
           <li key={e.item.id}>
             <span>
-              <span className="qty">{e.quantity}×</span> {e.item.name}
+              <span className="qty">{e.quantity}×</span> {translatedName(e.item.name, e.item.translations, locale)}
+              {Object.entries(e.selectedVariants).length > 0 && (
+                <span className="order-meta"> ({Object.values(e.selectedVariants).join(", ")})</span>
+              )}
             </span>
-            <span>{formatPrice(e.item.priceCents * e.quantity)}</span>
+            <Price cents={e.unitPriceCents * e.quantity} exchangeRate={exchangeRate} />
           </li>
         ))}
       </ul>
       <p>
-        <strong>Total: {formatPrice(totalCents)}</strong>
+        <strong>
+          {t("total")}: <Price cents={totalCents} exchangeRate={exchangeRate} />
+        </strong>
       </p>
 
       <form onSubmit={handleSubmit}>
         <section className="category-block">
-          <h3>Your details</h3>
+          <h3>{t("yourDetails")}</h3>
           <div className="form-row">
             <input
-              placeholder="Name"
+              placeholder={t("name")}
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
               required
             />
             <input
-              placeholder="Phone"
+              placeholder={t("phone")}
               type="tel"
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
@@ -84,7 +104,7 @@ export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBa
           </div>
           <div className="form-row">
             <input
-              placeholder="Email (optional)"
+              placeholder={t("emailOptional")}
               type="email"
               value={customerEmail}
               onChange={(e) => setCustomerEmail(e.target.value)}
@@ -93,7 +113,7 @@ export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBa
         </section>
 
         <section className="category-block">
-          <h3>Fulfillment</h3>
+          <h3>{t("fulfillment")}</h3>
           <div className="form-row">
             <label>
               <input
@@ -102,7 +122,7 @@ export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBa
                 checked={fulfillmentType === "pickup"}
                 onChange={() => setFulfillmentType("pickup")}
               />{" "}
-              Pickup
+              {t("pickup")}
             </label>
             <label>
               <input
@@ -111,13 +131,13 @@ export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBa
                 checked={fulfillmentType === "delivery"}
                 onChange={() => setFulfillmentType("delivery")}
               />{" "}
-              Delivery
+              {t("delivery")}
             </label>
           </div>
           {fulfillmentType === "delivery" && (
             <div className="form-row">
               <input
-                placeholder="Delivery address"
+                placeholder={t("deliveryAddress")}
                 value={deliveryAddress}
                 onChange={(e) => setDeliveryAddress(e.target.value)}
                 required
@@ -128,13 +148,13 @@ export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBa
         </section>
 
         <section className="category-block">
-          <h3>Notes for the kitchen (optional)</h3>
+          <h3>{t("notesForKitchen")}</h3>
           <textarea
             rows={2}
             style={{ width: "100%" }}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Allergies, special requests…"
+            placeholder={t("notesPlaceholder")}
           />
         </section>
 
@@ -142,7 +162,7 @@ export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBa
 
         <div className="cart-bar" style={{ position: "static", border: "none", padding: 0 }}>
           <button type="submit" disabled={submitting}>
-            {submitting ? "Redirecting to payment…" : `Pay ${formatPrice(totalCents)}`}
+            {submitting ? t("redirectingToPayment") : `${t("pay")} ${formatPrice(totalCents)}`}
           </button>
         </div>
       </form>
