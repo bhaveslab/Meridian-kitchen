@@ -6,11 +6,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const id = req.query.id as string;
 
   if (req.method === "PATCH") {
-    const { name, sortOrder } = req.body ?? {};
+    const { name, sortOrder, translations } = req.body ?? {};
     const { rows } = await sql`
       UPDATE menu_categories
       SET name = COALESCE(${name ?? null}, name),
-          sort_order = COALESCE(${sortOrder ?? null}, sort_order)
+          sort_order = COALESCE(${sortOrder ?? null}, sort_order),
+          translations = COALESCE(${translations ? JSON.stringify(translations) : null}::jsonb, translations)
       WHERE id = ${id}
       RETURNING *
     `;

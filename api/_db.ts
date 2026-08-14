@@ -22,6 +22,7 @@ export function mapRestaurant(row: any): Restaurant {
     address: row.address,
     phone: row.phone,
     isActive: row.is_active,
+    usdHnlExchangeRate: Number(row.usd_hnl_exchange_rate),
     createdAt: row.created_at,
   };
 }
@@ -31,6 +32,7 @@ export function mapCategory(row: any): MenuCategory {
     id: row.id,
     restaurantId: row.restaurant_id,
     name: row.name,
+    translations: row.translations ?? {},
     sortOrder: row.sort_order,
     createdAt: row.created_at,
   };
@@ -43,9 +45,13 @@ export function mapMenuItem(row: any): MenuItem {
     categoryId: row.category_id,
     name: row.name,
     description: row.description,
+    translations: row.translations ?? {},
     priceCents: row.price_cents,
+    needsPricing: row.needs_pricing,
     isAvailable: row.is_available,
     sortOrder: row.sort_order,
+    foodGuideTags: row.food_guide_tags ?? [],
+    variantOptions: row.variant_options ?? [],
     createdAt: row.created_at,
   };
 }
@@ -58,6 +64,7 @@ export function mapOrderItem(row: any): OrderItem {
     menuItemName: row.menu_item_name,
     quantity: row.quantity,
     unitPriceCents: row.unit_price_cents,
+    selectedVariants: row.selected_variants ?? {},
     specialInstructions: row.special_instructions,
   };
 }

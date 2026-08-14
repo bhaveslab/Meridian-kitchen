@@ -6,15 +6,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const id = req.query.id as string;
 
   if (req.method === "PATCH") {
-    const { categoryId, name, description, priceCents, isAvailable, sortOrder } = req.body ?? {};
+    const {
+      categoryId,
+      name,
+      description,
+      priceCents,
+      needsPricing,
+      isAvailable,
+      sortOrder,
+      translations,
+      foodGuideTags,
+      variantOptions,
+    } = req.body ?? {};
     const { rows } = await sql`
       UPDATE menu_items
       SET category_id = COALESCE(${categoryId ?? null}, category_id),
           name = COALESCE(${name ?? null}, name),
           description = COALESCE(${description ?? null}, description),
           price_cents = COALESCE(${priceCents ?? null}, price_cents),
+          needs_pricing = COALESCE(${needsPricing ?? null}, needs_pricing),
           is_available = COALESCE(${isAvailable ?? null}, is_available),
-          sort_order = COALESCE(${sortOrder ?? null}, sort_order)
+          sort_order = COALESCE(${sortOrder ?? null}, sort_order),
+          translations = COALESCE(${translations ? JSON.stringify(translations) : null}::jsonb, translations),
+          food_guide_tags = COALESCE(${foodGuideTags ?? null}, food_guide_tags),
+          variant_options = COALESCE(${variantOptions ? JSON.stringify(variantOptions) : null}::jsonb, variant_options)
       WHERE id = ${id}
       RETURNING *
     `;

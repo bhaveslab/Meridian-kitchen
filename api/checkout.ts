@@ -35,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await client.query("BEGIN");
 
     const { rows: restaurantRows } = await client.query(
-      "SELECT slug FROM restaurants WHERE id = $1 AND is_active = true",
+      "SELECT slug, usd_hnl_exchange_rate FROM restaurants WHERE id = $1 AND is_active = true",
       [body.restaurantId]
     );
     if (restaurantRows.length === 0) {
@@ -43,11 +43,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ error: "Restaurant not found" });
     }
     restaurantSlug = restaurantRows[0].slug as string;
+    const exchangeRate = restaurantRows[0].usd_hnl_exchange_rate as string;
 
     const { rows: orderRows } = await client.query(
       `INSERT INTO orders
-         (restaurant_id, customer_name, customer_phone, customer_email, fulfillment_type, delivery_address, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+         (restaurant_id, customer_name, customer_phone, customer_email, fulfillment_type, delivery_address,
+          notes, exchange_rate_hnl_per_usd)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING id`,
       [
         body.restaurantId,
@@ -57,26 +59,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         body.fulfillmentType,
         body.deliveryAddress?.trim() || null,
         body.notes?.trim() || null,
+        exchangeRate,
       ]
     );
     orderId = orderRows[0].id as string;
 
     for (const item of body.items) {
       const { rows: menuItemRows } = await client.query(
-        "SELECT name, price_cents FROM menu_items WHERE id = $1 AND restaurant_id = $2 AND is_available = true",
+        "SELECT name, price_cents, variant_options FROM menu_items WHERE id = $1 AND restaurant_id = $2 AND is_available = true",
         [item.menuItemId, body.restaurantId]
       );
       if (menuItemRows.length === 0) {
         await client.query("ROLLBACK");
         return res.status(400).json({ error: `Menu item ${item.menuItemId} is not available` });
       }
-      const priceCents = menuItemRows[0].price_cents as number;
+      const basePriceCents = menuItemRows[0].price_cents as number;
+      const variantOptions = (menuItemRows[0].variant_options ?? []) as {
+        key: string;
+        choices: { value: string; priceDeltaCents: number }[];
+      }[];
+
+      const selectedVariants = item.selectedVariants ?? {};
+      let priceDeltaCents = 0;
+      for (const group of variantOptions) {
+        const selectedValue = selectedVariants[group.key];
+        const choice = group.choices.find((c) => c.value === selectedValue);
+        if (!choice) {
+          await client.query("ROLLBACK");
+          return res.status(400).json({ error: `Missing or invalid choice for "${group.key}" on ${menuItemRows[0].name}` });
+        }
+        priceDeltaCents += choice.priceDeltaCents;
+      }
+      const unitPriceCents = basePriceCents + priceDeltaCents;
+
       await client.query(
-        `INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price_cents, special_instructions)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [orderId, item.menuItemId, item.quantity, priceCents, item.specialInstructions ?? null]
+        `INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price_cents, selected_variants, special_instructions)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [orderId, item.menuItemId, item.quantity, unitPriceCents, JSON.stringify(selectedVariants), item.specialInstructions ?? null]
       );
-      lineItems.push({ name: menuItemRows[0].name as string, priceCents, quantity: item.quantity });
+      lineItems.push({ name: menuItemRows[0].name as string, priceCents: unitPriceCents, quantity: item.quantity });
     }
 
     await client.query("COMMIT");

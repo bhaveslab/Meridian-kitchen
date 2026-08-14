@@ -11,6 +11,7 @@ interface OrderRow {
   delivery_address: string | null;
   status: OrderStatus;
   payment_status: PaymentStatus;
+  exchange_rate_hnl_per_usd: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -27,6 +28,7 @@ function toOrder(row: OrderRow, items: OrderItem[]): Order {
     deliveryAddress: row.delivery_address,
     status: row.status,
     paymentStatus: row.payment_status,
+    exchangeRateHnlPerUsd: row.exchange_rate_hnl_per_usd === null ? null : Number(row.exchange_rate_hnl_per_usd),
     notes: row.notes,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

@@ -3,9 +3,23 @@ import { sql, mapRestaurant, mapCategory, mapMenuItem } from "../_db";
 import { methodNotAllowed } from "../_http";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
-
   const slug = req.query.slug as string;
+
+  if (req.method === "PATCH") {
+    const { usdHnlExchangeRate } = req.body ?? {};
+    if (typeof usdHnlExchangeRate !== "number" || usdHnlExchangeRate <= 0) {
+      return res.status(400).json({ error: "usdHnlExchangeRate must be a positive number" });
+    }
+    const { rows } = await sql`
+      UPDATE restaurants SET usd_hnl_exchange_rate = ${usdHnlExchangeRate} WHERE slug = ${slug}
+      RETURNING *
+    `;
+    if (rows.length === 0) return res.status(404).json({ error: "Restaurant not found" });
+    return res.status(200).json(mapRestaurant(rows[0]));
+  }
+
+  if (req.method !== "GET") return methodNotAllowed(res, ["GET", "PATCH"]);
+
   const { rows: restaurantRows } = await sql`
     SELECT * FROM restaurants WHERE slug = ${slug} AND is_active = true
   `;
