@@ -34,6 +34,9 @@ CREATE TABLE IF NOT EXISTS restaurants (
   address TEXT,
   phone TEXT,
   is_active BOOLEAN NOT NULL DEFAULT true,
+  -- Display-only estimate for showing HNL alongside the real USD charge.
+  -- Manually maintained in v1 (no live FX feed), editable from the dashboard.
+  usd_hnl_exchange_rate NUMERIC(10, 4) NOT NULL DEFAULT 26.5,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -41,6 +44,8 @@ CREATE TABLE IF NOT EXISTS menu_categories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   restaurant_id UUID NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
+  -- {"es": {"name": "..."}} — "name" above stays the English default/fallback.
+  translations JSONB NOT NULL DEFAULT '{}',
   sort_order INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -53,9 +58,23 @@ CREATE TABLE IF NOT EXISTS menu_items (
   category_id UUID NOT NULL REFERENCES menu_categories(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
+  -- {"es": {"name": "...", "description": "..."}} — English columns above are the fallback.
+  translations JSONB NOT NULL DEFAULT '{}',
+  -- Canonical price is USD cents — this is what Stripe actually charges.
+  -- HNL is a converted display estimate only, never the source of truth.
   price_cents INTEGER NOT NULL CHECK (price_cents >= 0),
+  -- True while the listed price is a placeholder pending a real number,
+  -- so the dashboard can surface it as needing attention.
+  needs_pricing BOOLEAN NOT NULL DEFAULT false,
   is_available BOOLEAN NOT NULL DEFAULT true,
   sort_order INTEGER NOT NULL DEFAULT 0,
+  -- Tags into the WLV Electric Foods Guide categories (see shared/foodGuide.ts).
+  food_guide_tags TEXT[] NOT NULL DEFAULT '{}',
+  -- Optional modifier groups, e.g. serving_style (plate/wrap). Empty array
+  -- means the item has no choices to make. Price deltas are USD cents.
+  -- [{ "key": "serving_style", "labelEn": "...", "labelEs": "...",
+  --    "choices": [{ "value": "plate", "labelEn": "...", "labelEs": "...", "priceDeltaCents": 0 }] }]
+  variant_options JSONB NOT NULL DEFAULT '[]',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -74,6 +93,10 @@ CREATE TABLE IF NOT EXISTS orders (
   payment_status payment_status NOT NULL DEFAULT 'pending',
   stripe_checkout_session_id TEXT UNIQUE,
   stripe_payment_intent_id TEXT,
+  -- Snapshot of the restaurant's usd_hnl_exchange_rate at checkout time, so a
+  -- later rate change doesn't retroactively alter what a past order's HNL
+  -- estimate was shown as.
+  exchange_rate_hnl_per_usd NUMERIC(10, 4),
   notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -92,7 +115,10 @@ CREATE TABLE IF NOT EXISTS order_items (
   order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
   menu_item_id UUID NOT NULL REFERENCES menu_items(id) ON DELETE RESTRICT,
   quantity INTEGER NOT NULL CHECK (quantity > 0),
+  -- USD cents, already inclusive of any variant price delta at order time.
   unit_price_cents INTEGER NOT NULL CHECK (unit_price_cents >= 0),
+  -- {"serving_style": "wrap"} — echoes menu_items.variant_options choices made.
+  selected_variants JSONB NOT NULL DEFAULT '{}',
   special_instructions TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
