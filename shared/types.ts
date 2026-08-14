@@ -1,13 +1,37 @@
 // Shared between /api (serverless functions) and /src (frontend).
 
-export type OrderStatus = "placed" | "in_progress" | "ready" | "served" | "cancelled";
+export type OrderStatus = "received" | "preparing" | "ready" | "out_for_delivery" | "completed" | "cancelled";
 
-export const ORDER_STATUSES: OrderStatus[] = ["placed", "in_progress", "ready", "served", "cancelled"];
+export const ORDER_STATUSES: OrderStatus[] = [
+  "received",
+  "preparing",
+  "ready",
+  "out_for_delivery",
+  "completed",
+  "cancelled",
+];
 
-export const ACTIVE_ORDER_STATUSES: OrderStatus[] = ["placed", "in_progress", "ready"];
+// Orders a restaurant's dashboard should treat as still in flight.
+export const ACTIVE_ORDER_STATUSES: OrderStatus[] = ["received", "preparing", "ready", "out_for_delivery"];
+
+export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
+
+export type FulfillmentType = "pickup" | "delivery";
+
+export interface Restaurant {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  address: string | null;
+  phone: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
 
 export interface MenuCategory {
   id: string;
+  restaurantId: string;
   name: string;
   sortOrder: number;
   createdAt: string;
@@ -15,20 +39,13 @@ export interface MenuCategory {
 
 export interface MenuItem {
   id: string;
+  restaurantId: string;
   categoryId: string;
   name: string;
   description: string | null;
   priceCents: number;
   isAvailable: boolean;
   sortOrder: number;
-  createdAt: string;
-}
-
-export interface RestaurantTable {
-  id: string;
-  label: string;
-  seats: number | null;
-  guestToken: string;
   createdAt: string;
 }
 
@@ -44,9 +61,14 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
-  tableId: string;
-  tableLabel: string;
+  restaurantId: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string | null;
+  fulfillmentType: FulfillmentType;
+  deliveryAddress: string | null;
   status: OrderStatus;
+  paymentStatus: PaymentStatus;
   notes: string | null;
   createdAt: string;
   updatedAt: string;
@@ -59,14 +81,24 @@ export interface CreateOrderItemInput {
   specialInstructions?: string;
 }
 
-export interface CreateOrderInput {
-  tableId: string;
+export interface CheckoutInput {
+  restaurantId: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  fulfillmentType: FulfillmentType;
+  deliveryAddress?: string;
   notes?: string;
   items: CreateOrderItemInput[];
 }
 
-export interface GuestMenuResponse {
-  table: RestaurantTable;
+export interface CheckoutResponse {
+  orderId: string;
+  checkoutUrl: string;
+}
+
+export interface StorefrontResponse {
+  restaurant: Restaurant;
   categories: MenuCategory[];
   items: MenuItem[];
 }
