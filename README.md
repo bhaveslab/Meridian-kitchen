@@ -61,19 +61,20 @@ rows in place rather than duplicating them.
   still be flagged as needing a final number. The dashboard surfaces these
   with a badge so they don't get lost.
 - **`food_guide_tags`**: each item is tagged against the WLV Electric Foods
-  Guide categories (`shared/foodGuide.ts`). The seeded tags are provisional —
-  assigned from ingredient lists, not the source guide — and should be
-  confirmed against the actual guide.
+  Guide categories (`shared/foodGuide.ts`, 10 categories including
+  `sea_vegetables`). The seeded tags reflect the restaurant's own review
+  pass, not a guess — see "Iyānu's Kitchen — Spanish Translations &
+  Food-Guide Tags" for the source draft.
 - **`variant_options`**: optional modifier groups on an item (e.g. Electric
   Falafels' plate-vs-wrap `serving_style`), stored as JSON on the item and
   edited via a raw JSON field in the dashboard's item editor. Selected
   choices and any price delta are snapshotted onto the order at checkout.
 - **Bilingual (EN/ES)**: static UI chrome text lives in `shared/i18n.ts`.
   Menu content (item/category names & descriptions) is translated per-row
-  via a `translations` JSONB column, editable from the dashboard. **The
-  seeded Spanish translations are empty** — machine-translating a real menu
-  risked getting brand voice wrong, so that content should be filled in by
-  the restaurant, not guessed by the seed script.
+  via a `translations` JSONB column, editable from the dashboard. Item
+  translations are seeded from the restaurant's reviewed draft; category
+  headers (Mains & Savory, Rolls, etc.) got straightforward direct
+  translations since they're generic section names, not brand content.
 - **Currency**: `price_cents` is USD cents and is always the amount actually
   charged. HNL is shown alongside as a converted *estimate* only
   (`restaurants.usd_hnl_exchange_rate`, dashboard-editable, no live FX feed

@@ -11,7 +11,8 @@ export type FoodGuideCategoryKey =
   | "herbs_and_spices"
   | "sweeteners"
   | "herbal_teas"
-  | "alkaline_water";
+  | "alkaline_water"
+  | "sea_vegetables";
 
 export interface FoodGuideCategory {
   key: FoodGuideCategoryKey;
@@ -29,6 +30,7 @@ export const FOOD_GUIDE_CATEGORIES: FoodGuideCategory[] = [
   { key: "sweeteners", labelEn: "Sweeteners", labelEs: "Endulzantes" },
   { key: "herbal_teas", labelEn: "Herbal Teas", labelEs: "Tés de Hierbas" },
   { key: "alkaline_water", labelEn: "Alkaline Water", labelEs: "Agua Alcalina" },
+  { key: "sea_vegetables", labelEn: "Sea Vegetables", labelEs: "Vegetales Marinos" },
 ];
 
 export const FOOD_GUIDE_CATEGORY_KEYS: FoodGuideCategoryKey[] = FOOD_GUIDE_CATEGORIES.map((c) => c.key);
