@@ -60,6 +60,9 @@ CREATE TABLE IF NOT EXISTS menu_items (
   description TEXT,
   -- {"es": {"name": "...", "description": "..."}} — English columns above are the fallback.
   translations JSONB NOT NULL DEFAULT '{}',
+  -- Path/URL to a photo, e.g. "/menu-photos/alkaline-machuca.jpg". Null means
+  -- no photo yet — the UI falls back to a placeholder state, not a guess.
+  image_url TEXT,
   -- Canonical price is USD cents — this is what Stripe actually charges.
   -- HNL is a converted display estimate only, never the source of truth.
   price_cents INTEGER NOT NULL CHECK (price_cents >= 0),

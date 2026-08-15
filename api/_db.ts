@@ -46,6 +46,7 @@ export function mapMenuItem(row: any): MenuItem {
     name: row.name,
     description: row.description,
     translations: row.translations ?? {},
+    imageUrl: row.image_url,
     priceCents: row.price_cents,
     needsPricing: row.needs_pricing,
     isAvailable: row.is_available,

@@ -7,6 +7,7 @@ interface Props {
   onSave: (updates: {
     name: string;
     description: string;
+    imageUrl: string;
     priceCents: number;
     needsPricing: boolean;
     translations: Translations;
@@ -19,6 +20,7 @@ interface Props {
 export default function ItemEditForm({ item, onSave, onCancel }: Props) {
   const [name, setName] = useState(item.name);
   const [description, setDescription] = useState(item.description ?? "");
+  const [imageUrl, setImageUrl] = useState(item.imageUrl ?? "");
   const [nameEs, setNameEs] = useState(item.translations.es?.name ?? "");
   const [descriptionEs, setDescriptionEs] = useState(item.translations.es?.description ?? "");
   const [price, setPrice] = useState((item.priceCents / 100).toFixed(2));
@@ -57,6 +59,7 @@ export default function ItemEditForm({ item, onSave, onCancel }: Props) {
       await onSave({
         name: name.trim(),
         description: description.trim(),
+        imageUrl: imageUrl.trim(),
         priceCents,
         needsPricing,
         translations: {
@@ -91,6 +94,14 @@ export default function ItemEditForm({ item, onSave, onCancel }: Props) {
           placeholder="Descripción (ES)"
           value={descriptionEs}
           onChange={(e) => setDescriptionEs(e.target.value)}
+        />
+      </div>
+      <div className="form-row">
+        <input
+          placeholder="Image URL (e.g. /menu-photos/dish.jpg)"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          style={{ flexBasis: "100%" }}
         />
       </div>
       <div className="form-row">

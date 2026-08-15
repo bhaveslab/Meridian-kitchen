@@ -65,6 +65,7 @@ export const createMenuItem = (input: {
   categoryId: string;
   name: string;
   description?: string;
+  imageUrl?: string;
   priceCents: number;
   needsPricing?: boolean;
   isAvailable?: boolean;
@@ -79,6 +80,7 @@ export const updateMenuItem = (
     categoryId: string;
     name: string;
     description: string;
+    imageUrl: string;
     priceCents: number;
     needsPricing: boolean;
     isAvailable: boolean;

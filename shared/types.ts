@@ -71,6 +71,7 @@ export interface MenuItem {
   name: string;
   description: string | null;
   translations: Translations;
+  imageUrl: string | null;
   priceCents: number;
   needsPricing: boolean;
   isAvailable: boolean;

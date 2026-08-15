@@ -27,6 +27,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       categoryId,
       name,
       description,
+      imageUrl,
       priceCents,
       needsPricing,
       isAvailable,
@@ -40,11 +41,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const { rows } = await sql`
       INSERT INTO menu_items (
-        restaurant_id, category_id, name, description, price_cents, needs_pricing,
+        restaurant_id, category_id, name, description, image_url, price_cents, needs_pricing,
         is_available, sort_order, translations, food_guide_tags, variant_options
       )
       VALUES (
-        ${restaurantId}, ${categoryId}, ${name}, ${description ?? null}, ${priceCents}, ${needsPricing ?? false},
+        ${restaurantId}, ${categoryId}, ${name}, ${description ?? null}, ${imageUrl ?? null},
+        ${priceCents}, ${needsPricing ?? false},
         ${isAvailable ?? true}, ${sortOrder ?? 0}, ${JSON.stringify(translations ?? {})},
         ${foodGuideTags ?? []}, ${JSON.stringify(variantOptions ?? [])}
       )
