@@ -18,14 +18,11 @@
 -- guide category.
 --
 -- image_url points at /menu-photos/<name>.jpg (public/menu-photos, real
--- supplied photography). Two items still have no photo — Pasta Supreme (no
--- real photo exists yet, needs actual restaurant photography rather than a
--- stock/AI placeholder) and Electric Vergers (a supplied "vergers-or-falafels"
--- photo didn't clearly match either dish or the existing Electric Falafels
--- photo, so it was left unassigned rather than guessed). Artisan Chocolate's
+-- supplied photography). All 18 items now have a photo. Artisan Chocolate's
 -- photo is one representative shot of its rotating, unphotographed-as-a-
--- whole sub-catalog, not a fixed product photo. The storefront should render
--- a placeholder state for NULL, not assume a broken image.
+-- whole sub-catalog, not a fixed product photo. The storefront should still
+-- render a placeholder state for a NULL image_url in general, since this
+-- isn't schema-enforced.
 --
 -- Run against a Vercel Postgres database, e.g.:
 --   psql "$POSTGRES_URL" -f db/seed.sql
@@ -76,7 +73,7 @@ VALUES
   ('b0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000010',
    'Pasta Supreme', 'Mushroom veggie medley over spelt or chickpea pasta.',
    '{"es":{"name":"Pasta Suprema","description":"Una mezcla bien sazonada de hongos y vegetales sobre pasta de espelta o garbanzo."}}'::jsonb,
-   NULL, 999, false, ARRAY['vegetables','grains'], 30),
+   '/menu-photos/pasta-supreme.jpg', 999, false, ARRAY['vegetables','grains'], 30),
 
   ('b0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000010',
    'Chips and Guac', 'Batter-fried green bananas with fresh guacamole.',
@@ -86,7 +83,7 @@ VALUES
   ('b0000000-0000-0000-0000-000000000005', 'a0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000010',
    'Electric Vergers', 'Garbanzo veggie burger sliders on ancient grain flatbread, with tomatillo or spicy hummus (2pc).',
    '{"es":{"name":"Vergers Eléctricos","description":"Sliders de hamburguesa vegetal a base de garbanzo servidos en pan plano de granos ancestrales, con salsa de tomatillo o hummus picante a elegir (2 piezas)."}}'::jsonb,
-   NULL, 1260, false, ARRAY['vegetables','grains'], 50),
+   '/menu-photos/electric-vergers.jpg', 1260, false, ARRAY['vegetables','grains'], 50),
 
   ('b0000000-0000-0000-0000-000000000006', 'a0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000010',
    'Quinoa Stir Fry', 'Quinoa veggie medley, Chinese-fried-rice style, with tajadas and avocado.',
