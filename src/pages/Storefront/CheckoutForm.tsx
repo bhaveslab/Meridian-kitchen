@@ -1,22 +1,22 @@
 import { useState, type FormEvent } from "react";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { checkout } from "../../lib/api";
 import { useLanguage } from "../../lib/LanguageContext";
+import { useCart } from "../../lib/CartContext";
 import { translatedName } from "../../lib/translated";
-import LanguageToggle from "../../components/LanguageToggle";
-import Price from "../../components/Price";
+import StorefrontLangToggle from "../../components/StorefrontLangToggle";
+import StorefrontPrice from "../../components/StorefrontPrice";
 import { formatPrice } from "../../lib/format";
-import type { FulfillmentType, Restaurant } from "../../../shared/types";
-import type { CartEntry } from "./StorefrontPage";
+import type { FulfillmentType, StorefrontResponse } from "../../../shared/types";
 
-interface Props {
-  restaurant: Restaurant;
-  cartEntries: CartEntry[];
-  totalCents: number;
-  onBack: () => void;
-}
-
-export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBack }: Props) {
+export default function CheckoutForm() {
+  const storefront = useOutletContext<StorefrontResponse>();
+  const navigate = useNavigate();
   const { locale, t } = useLanguage();
+  const cart = useCart();
+  const slug = storefront.restaurant.slug;
+  const exchangeRate = storefront.restaurant.usdHnlExchangeRate;
+
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -28,19 +28,19 @@ export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBa
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (cartEntries.length === 0) return;
+    if (cart.entries.length === 0) return;
     setSubmitError(null);
     setSubmitting(true);
     try {
       const { checkoutUrl } = await checkout({
-        restaurantId: restaurant.id,
+        restaurantId: storefront.restaurant.id,
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
         customerEmail: customerEmail.trim() || undefined,
         fulfillmentType,
         deliveryAddress: fulfillmentType === "delivery" ? deliveryAddress.trim() : undefined,
         notes: notes.trim() || undefined,
-        items: cartEntries.map((e) => ({
+        items: cart.entries.map((e) => ({
           menuItemId: e.item.id,
           quantity: e.quantity,
           selectedVariants: e.selectedVariants,
@@ -53,40 +53,37 @@ export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBa
     }
   }
 
-  const exchangeRate = restaurant.usdHnlExchangeRate;
-
   return (
-    <main className="guest-page">
-      <div className="page-header">
-        <button type="button" onClick={onBack}>
-          {t("backToMenu")}
+    <div>
+      <div className="st-header">
+        <button type="button" className="st-back" onClick={() => navigate(`/r/${slug}/cart`)}>
+          ←
         </button>
-        <LanguageToggle />
+        <strong style={{ fontFamily: "var(--font-display)", fontSize: 18 }}>{t("checkout")}</strong>
+        <StorefrontLangToggle />
       </div>
-      <h1>{t("checkout")}</h1>
 
-      <ul className="order-items" style={{ marginBottom: "1.5rem" }}>
-        {cartEntries.map((e) => (
-          <li key={e.item.id}>
-            <span>
-              <span className="qty">{e.quantity}×</span> {translatedName(e.item.name, e.item.translations, locale)}
-              {Object.entries(e.selectedVariants).length > 0 && (
-                <span className="order-meta"> ({Object.values(e.selectedVariants).join(", ")})</span>
-              )}
-            </span>
-            <Price cents={e.unitPriceCents * e.quantity} exchangeRate={exchangeRate} />
-          </li>
-        ))}
-      </ul>
-      <p>
-        <strong>
-          {t("total")}: <Price cents={totalCents} exchangeRate={exchangeRate} />
-        </strong>
-      </p>
+      <div style={{ padding: 16 }}>
+        <div className="st-summary-card st-card">
+          {cart.entries.map((e) => (
+            <div className="st-summary-row" key={e.item.id}>
+              <span>
+                {e.quantity}× {translatedName(e.item.name, e.item.translations, locale)}
+              </span>
+              <StorefrontPrice cents={e.unitPriceCents * e.quantity} exchangeRate={exchangeRate} />
+            </div>
+          ))}
+          <hr className="st-summary-divider" />
+          <div className="st-summary-row" style={{ fontWeight: 600 }}>
+            <span>{t("total")}</span>
+            <StorefrontPrice cents={cart.totalCents} exchangeRate={exchangeRate} />
+          </div>
+        </div>
 
-      <form onSubmit={handleSubmit}>
-        <section className="category-block">
-          <h3>{t("yourDetails")}</h3>
+        <form onSubmit={handleSubmit} style={{ marginTop: 20 }}>
+          <div className="st-eyebrow" style={{ marginBottom: 8 }}>
+            {t("yourDetails")}
+          </div>
           <div className="form-row">
             <input
               placeholder={t("name")}
@@ -110,29 +107,25 @@ export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBa
               onChange={(e) => setCustomerEmail(e.target.value)}
             />
           </div>
-        </section>
 
-        <section className="category-block">
-          <h3>{t("fulfillment")}</h3>
-          <div className="form-row">
-            <label>
-              <input
-                type="radio"
-                name="fulfillment"
-                checked={fulfillmentType === "pickup"}
-                onChange={() => setFulfillmentType("pickup")}
-              />{" "}
+          <div className="st-eyebrow" style={{ margin: "20px 0 8px" }}>
+            {t("fulfillment")}
+          </div>
+          <div className="st-variant-picker">
+            <button
+              type="button"
+              className={`st-variant-option ${fulfillmentType === "pickup" ? "active" : ""}`}
+              onClick={() => setFulfillmentType("pickup")}
+            >
               {t("pickup")}
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="fulfillment"
-                checked={fulfillmentType === "delivery"}
-                onChange={() => setFulfillmentType("delivery")}
-              />{" "}
+            </button>
+            <button
+              type="button"
+              className={`st-variant-option ${fulfillmentType === "delivery" ? "active" : ""}`}
+              onClick={() => setFulfillmentType("delivery")}
+            >
               {t("delivery")}
-            </label>
+            </button>
           </div>
           {fulfillmentType === "delivery" && (
             <div className="form-row">
@@ -145,10 +138,10 @@ export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBa
               />
             </div>
           )}
-        </section>
 
-        <section className="category-block">
-          <h3>{t("notesForKitchen")}</h3>
+          <div className="st-eyebrow" style={{ margin: "20px 0 8px" }}>
+            {t("notesForKitchen")}
+          </div>
           <textarea
             rows={2}
             style={{ width: "100%" }}
@@ -156,16 +149,16 @@ export default function CheckoutForm({ restaurant, cartEntries, totalCents, onBa
             onChange={(e) => setNotes(e.target.value)}
             placeholder={t("notesPlaceholder")}
           />
-        </section>
 
-        {submitError && <div className="error-banner">{submitError}</div>}
+          {submitError && <div className="error-banner">{submitError}</div>}
 
-        <div className="cart-bar" style={{ position: "static", border: "none", padding: 0 }}>
-          <button type="submit" disabled={submitting}>
-            {submitting ? t("redirectingToPayment") : `${t("pay")} ${formatPrice(totalCents)}`}
-          </button>
-        </div>
-      </form>
-    </main>
+          <div className="st-sticky-footer" style={{ position: "sticky", padding: "20px 0" }}>
+            <button type="submit" className="st-pill st-pill-gold" style={{ width: "100%", padding: 15 }} disabled={submitting}>
+              {submitting ? t("redirectingToPayment") : `${t("pay")} · ${formatPrice(cart.totalCents)}`}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
