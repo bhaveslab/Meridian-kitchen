@@ -57,6 +57,19 @@ export const UI_STRINGS = {
   cancel: { en: "Cancel", es: "Cancelar" },
   exchangeRateLabel: { en: "USD → HNL display rate", es: "Tasa de cambio USD → HNL" },
   save: { en: "Save", es: "Guardar" },
+  viewMenu: { en: "View menu", es: "Ver menú" },
+  menuTitle: { en: "Menu", es: "Menú" },
+  allCategory: { en: "All", es: "Todos" },
+  yourOrder: { en: "Your order", es: "Tu pedido" },
+  emptyCart: { en: "Your cart is empty", es: "Tu carrito está vacío" },
+  browseMenu: { en: "Browse the menu", es: "Ver el menú" },
+  addToCart: { en: "Add to cart", es: "Agregar al carrito" },
+  askStaff: { en: "Ask staff", es: "Pregunte al personal" },
+  subtotal: { en: "Subtotal", es: "Subtotal" },
+  orderReceived: { en: "Order received", es: "Pedido recibido" },
+  thankYou: { en: "Thank you for your order!", es: "¡Gracias por tu pedido!" },
+  noPhoto: { en: "Photo coming soon", es: "Foto próximamente" },
+  priceVaries: { en: "Price varies", es: "Precio varía" },
 } as const satisfies Dictionary;
 
 export type UiStringKey = keyof typeof UI_STRINGS;
