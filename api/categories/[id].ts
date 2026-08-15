@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { sql, mapCategory } from "../_db";
-import { methodNotAllowed } from "../_http";
+import { sql, mapCategory } from "../_db.js";
+import { methodNotAllowed } from "../_http.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const id = req.query.id as string;

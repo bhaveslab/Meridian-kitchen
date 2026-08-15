@@ -1,9 +1,9 @@
 import type { IncomingMessage } from "http";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import type Stripe from "stripe";
-import { sql } from "../_db";
-import { getStripe } from "../_stripe";
-import { methodNotAllowed } from "../_http";
+import { sql } from "../_db.js";
+import { getStripe } from "../_stripe.js";
+import { methodNotAllowed } from "../_http.js";
 
 // Stripe signature verification needs the exact raw request bytes, so the
 // platform's default JSON body parsing has to be turned off for this route.

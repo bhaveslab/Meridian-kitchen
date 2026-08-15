@@ -1,4 +1,4 @@
-import { query, mapOrderItem } from "./_db";
+import { query, mapOrderItem } from "./_db.js";
 import type { Order, OrderItem, OrderStatus, PaymentStatus } from "../shared/types";
 
 interface OrderRow {

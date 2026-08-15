@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { fetchOrders } from "./_orders";
-import { methodNotAllowed } from "./_http";
-import { ORDER_STATUSES, type OrderStatus, type PaymentStatus } from "../shared/types";
+import { fetchOrders } from "./_orders.js";
+import { methodNotAllowed } from "./_http.js";
+import { ORDER_STATUSES, type OrderStatus, type PaymentStatus } from "../shared/types.js";
 
 const PAYMENT_STATUSES: PaymentStatus[] = ["pending", "paid", "failed", "refunded"];
 

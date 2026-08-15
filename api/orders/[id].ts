@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { sql } from "../_db";
-import { fetchOrderById } from "../_orders";
-import { methodNotAllowed } from "../_http";
-import { ORDER_STATUSES } from "../../shared/types";
+import { sql } from "../_db.js";
+import { fetchOrderById } from "../_orders.js";
+import { methodNotAllowed } from "../_http.js";
+import { ORDER_STATUSES } from "../../shared/types.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const id = req.query.id as string;

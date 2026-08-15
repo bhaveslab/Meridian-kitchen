@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { db, sql } from "./_db";
-import { getStripe } from "./_stripe";
-import { methodNotAllowed } from "./_http";
+import { db, sql } from "./_db.js";
+import { getStripe } from "./_stripe.js";
+import { methodNotAllowed } from "./_http.js";
 import type { CheckoutInput, CheckoutResponse } from "../shared/types";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
