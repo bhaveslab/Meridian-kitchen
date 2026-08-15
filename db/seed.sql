@@ -18,13 +18,14 @@
 -- guide category.
 --
 -- image_url points at /menu-photos/<name>.jpg (public/menu-photos, real
--- supplied photography). Six items have no photo yet — Electric Vergers,
--- Blueberry Spelt Muffins, Hazelnut Butter Cookies, Seamoss Shake stayed
--- NULL because none was supplied; Pasta Supreme and Artisan Chocolate were
--- deliberately flagged photo-less in the design handoff (Pasta Supreme by
--- its own data, Artisan Chocolate since it's a rotating, unphotographed
--- sub-catalog). The storefront should render a placeholder state for NULL,
--- not assume a broken image.
+-- supplied photography). Two items still have no photo — Pasta Supreme (no
+-- real photo exists yet, needs actual restaurant photography rather than a
+-- stock/AI placeholder) and Electric Vergers (a supplied "vergers-or-falafels"
+-- photo didn't clearly match either dish or the existing Electric Falafels
+-- photo, so it was left unassigned rather than guessed). Artisan Chocolate's
+-- photo is one representative shot of its rotating, unphotographed-as-a-
+-- whole sub-catalog, not a fixed product photo. The storefront should render
+-- a placeholder state for NULL, not assume a broken image.
 --
 -- Run against a Vercel Postgres database, e.g.:
 --   psql "$POSTGRES_URL" -f db/seed.sql
@@ -148,7 +149,7 @@ VALUES
   ('b0000000-0000-0000-0000-000000000012', 'a0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000012',
    'Blueberry Spelt Muffins', NULL,
    '{"es":{"name":"Muffins de Espelta con Arándanos","description":"Muffins horneados a base de harina de espelta y kamut con arándanos frescos."}}'::jsonb,
-   NULL, 499, true, ARRAY['grains','fruits','sweeteners'], 10),
+   '/menu-photos/blueberry-spelt-muffins.jpg', 499, true, ARRAY['grains','fruits','sweeteners'], 10),
 
   ('b0000000-0000-0000-0000-000000000013', 'a0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000012',
    'Spelt Strawberry Waffles', NULL,
@@ -158,7 +159,7 @@ VALUES
   ('b0000000-0000-0000-0000-000000000014', 'a0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000012',
    'Hazelnut Butter Cookies', NULL,
    '{"es":{"name":"Galletas de Mantequilla de Avellana","description":"Galletas suaves hechas con mantequilla de avellana tostada y un toque de azúcar de coco o agave crudo."}}'::jsonb,
-   NULL, 399, true, ARRAY['nuts_and_seeds','grains','sweeteners'], 30)
+   '/menu-photos/hazelnut-cookies.jpg', 399, true, ARRAY['nuts_and_seeds','grains','sweeteners'], 30)
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name, description = EXCLUDED.description, translations = EXCLUDED.translations,
   image_url = EXCLUDED.image_url, price_cents = EXCLUDED.price_cents, needs_pricing = EXCLUDED.needs_pricing,
@@ -181,7 +182,7 @@ VALUES
   ('b0000000-0000-0000-0000-000000000017', 'a0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000013',
    'Seamoss Shake', 'Seamoss, dates, coconut, vanilla, and nut milk.',
    '{"es":{"name":"Batido de Seamoss","description":"Musgo de mar, dátiles, leche de nuez, extracto de vainilla y un toque de mantequilla de girasol."}}'::jsonb,
-   NULL, 899, true, ARRAY['sea_vegetables','sweeteners','nuts_and_seeds'], 30)
+   '/menu-photos/seamoss-shake.jpg', 899, true, ARRAY['sea_vegetables','sweeteners','nuts_and_seeds'], 30)
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name, description = EXCLUDED.description, translations = EXCLUDED.translations,
   image_url = EXCLUDED.image_url, price_cents = EXCLUDED.price_cents, needs_pricing = EXCLUDED.needs_pricing,
@@ -197,7 +198,7 @@ VALUES
    'Artisan Chocolate — ask about today''s selection',
    'Handmade truffles and dark/white chocolate bars, organic ingredients, sweetened with honey, coconut sugar, or maple. Infused and un-infused options available.',
    '{"es":{"name":"Chocolate Artesanal","description":"Pregunte por la selección de hoy — variedad de chocolates artesanales hechos a mano."}}'::jsonb,
-   NULL, 0, true, ARRAY['sweeteners'], 10)
+   '/menu-photos/artisan-chocolate.jpg', 0, true, ARRAY['sweeteners'], 10)
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name, description = EXCLUDED.description, translations = EXCLUDED.translations,
   image_url = EXCLUDED.image_url, price_cents = EXCLUDED.price_cents, needs_pricing = EXCLUDED.needs_pricing,
