@@ -37,7 +37,6 @@ export default function MenuScreen() {
         <strong style={{ fontFamily: "var(--font-display)", fontSize: 18 }}>{t("menuTitle")}</strong>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <StorefrontLangToggle />
-          <WhatsAppButton phone={storefront.restaurant.phone} variant="icon" />
           <button
             type="button"
             onClick={() => navigate(`/r/${slug}/cart`)}
@@ -69,6 +68,8 @@ export default function MenuScreen() {
           </button>
         </div>
       </div>
+
+      <WhatsAppButton phone={storefront.restaurant.phone} />
 
       <div className="st-category-tabs">
         <button
