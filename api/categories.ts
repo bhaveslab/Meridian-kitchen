@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { sql, mapCategory } from "./_db.js";
 import { methodNotAllowed } from "./_http.js";
+import { requireDashboardAuth } from "./_auth.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "GET") {
@@ -15,6 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === "POST") {
+    if (!requireDashboardAuth(req, res)) return;
     const { restaurantId, name, sortOrder, translations } = req.body ?? {};
     if (!restaurantId || !name || typeof name !== "string") {
       return res.status(400).json({ error: "restaurantId and name are required" });

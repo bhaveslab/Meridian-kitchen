@@ -102,3 +102,12 @@ export const getOrders = (filter: { restaurantId: string; statuses?: OrderStatus
 export const getOrder = (id: string) => request<Order>(`/api/orders/${id}`);
 export const updateOrderStatus = (id: string, status: OrderStatus) =>
   request<Order>(`/api/orders/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+
+// Dashboard auth (shared staff password, session cookie)
+export const checkDashboardSession = () => request<{ authenticated: boolean }>("/api/dashboard/session");
+export const dashboardLogin = (password: string) =>
+  request<{ authenticated: boolean }>("/api/dashboard/login", {
+    method: "POST",
+    body: JSON.stringify({ password }),
+  });
+export const dashboardLogout = () => request<{ authenticated: boolean }>("/api/dashboard/logout", { method: "POST" });

@@ -25,6 +25,9 @@ Also required before launch:
 - `STRIPE_WEBHOOK_SECRET`, from a webhook endpoint pointed at
   `/api/webhooks/stripe`, subscribed to `checkout.session.completed` and
   `checkout.session.expired`.
+- `DASHBOARD_PASSWORD`, the shared staff password for `/dashboard/:slug`.
+  There is no default — until it's set, `getPassword()` (`api/_auth.ts`)
+  throws and every dashboard login attempt fails.
 
 ## Stack
 
@@ -84,8 +87,11 @@ rows in place rather than duplicating them.
 
 ## Known v1 gaps (by design)
 
-- No auth on `/dashboard/:slug` — anyone with the link can manage the menu
-  and orders. Flagged as a gap to close before real use.
+- `/dashboard/:slug` is gated by one shared password (`DASHBOARD_PASSWORD`),
+  not per-user accounts — no individual identity, no audit trail of who
+  advanced or cancelled which order, and one password rotation locks out
+  every staff member at once. Fine for a single small-staff restaurant;
+  revisit with real accounts if that changes (`api/_auth.ts`).
 - No restaurant-onboarding UI — `restaurants` supports many tenants, but v1
   seeds one via SQL rather than building admin CRUD for creating them.
 - No guest accounts — checkout captures contact info per order.

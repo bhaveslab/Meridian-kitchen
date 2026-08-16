@@ -1,11 +1,13 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { sql, mapRestaurant, mapCategory, mapMenuItem } from "../_db.js";
 import { methodNotAllowed } from "../_http.js";
+import { requireDashboardAuth } from "../_auth.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const slug = req.query.slug as string;
 
   if (req.method === "PATCH") {
+    if (!requireDashboardAuth(req, res)) return;
     const { usdHnlExchangeRate } = req.body ?? {};
     if (typeof usdHnlExchangeRate !== "number" || usdHnlExchangeRate <= 0) {
       return res.status(400).json({ error: "usdHnlExchangeRate must be a positive number" });

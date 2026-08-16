@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getStorefront, updateExchangeRate } from "../../lib/api";
+import { checkDashboardSession, dashboardLogout, getStorefront, updateExchangeRate } from "../../lib/api";
 import { useLanguage } from "../../lib/LanguageContext";
 import LanguageToggle from "../../components/LanguageToggle";
 import type { Restaurant } from "../../../shared/types";
 import OrdersPanel from "./OrdersPanel";
 import MenuPanel from "./MenuPanel";
+import DashboardLogin from "./DashboardLogin";
 
 type Tab = "orders" | "menu";
 
 export default function DashboardPage() {
   const { slug } = useParams<{ slug: string }>();
   const { t } = useLanguage();
+  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("orders");
@@ -19,14 +21,26 @@ export default function DashboardPage() {
   const [savingRate, setSavingRate] = useState(false);
 
   useEffect(() => {
-    if (!slug) return;
+    checkDashboardSession()
+      .then((res) => setAuthenticated(res.authenticated))
+      .catch(() => setAuthenticated(false));
+  }, []);
+
+  useEffect(() => {
+    if (!slug || !authenticated) return;
     getStorefront(slug)
       .then((data) => {
         setRestaurant(data.restaurant);
         setRateInput(String(data.restaurant.usdHnlExchangeRate));
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Could not load restaurant"));
-  }, [slug]);
+  }, [slug, authenticated]);
+
+  async function logOut() {
+    await dashboardLogout().catch(() => undefined);
+    setRestaurant(null);
+    setAuthenticated(false);
+  }
 
   async function saveRate() {
     if (!restaurant) return;
@@ -39,6 +53,18 @@ export default function DashboardPage() {
     } finally {
       setSavingRate(false);
     }
+  }
+
+  if (authenticated === null) {
+    return (
+      <div className="page">
+        <p>Loading…</p>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return <DashboardLogin onSuccess={() => setAuthenticated(true)} />;
   }
 
   if (error) {
@@ -63,6 +89,9 @@ export default function DashboardPage() {
         <h1>{restaurant.name} — Dashboard</h1>
         <div className="page-header-actions">
           <Link to={`/r/${restaurant.slug}`}>{t("viewStorefront")}</Link>
+          <button type="button" onClick={logOut}>
+            {t("logOut")}
+          </button>
           <LanguageToggle />
         </div>
       </div>
