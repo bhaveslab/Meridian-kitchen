@@ -2,6 +2,7 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { useLanguage } from "../../lib/LanguageContext";
 import { translatedName } from "../../lib/translated";
 import StorefrontLangToggle from "../../components/StorefrontLangToggle";
+import WhatsAppButton from "../../components/WhatsAppButton";
 import type { StorefrontResponse } from "../../../shared/types";
 
 // The headline is short brand copy translated here rather than sourced from
@@ -49,6 +50,10 @@ export default function LandingScreen() {
       >
         {t("viewMenu")}
       </button>
+
+      <div style={{ marginTop: 12 }}>
+        <WhatsAppButton phone={storefront.restaurant.phone} />
+      </div>
 
       <div className="st-landing-chips">
         {storefront.categories.map((category) => (

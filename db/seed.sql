@@ -27,12 +27,13 @@
 -- Run against a Vercel Postgres database, e.g.:
 --   psql "$POSTGRES_URL" -f db/seed.sql
 
-INSERT INTO restaurants (id, slug, name, description, is_active, usd_hnl_exchange_rate)
+INSERT INTO restaurants (id, slug, name, description, phone, is_active, usd_hnl_exchange_rate)
 VALUES (
   'a0000000-0000-0000-0000-000000000001',
   'iyanus-kitchen',
   'Iyānu''s Kitchen',
   'Plant-based, alkaline/electric cuisine from Wholelistic Life Village.',
+  '+504 9579-8776',
   true,
   26.5
 )
@@ -40,6 +41,7 @@ ON CONFLICT (id) DO UPDATE SET
   slug = EXCLUDED.slug,
   name = EXCLUDED.name,
   description = EXCLUDED.description,
+  phone = EXCLUDED.phone,
   is_active = EXCLUDED.is_active;
 
 INSERT INTO menu_categories (id, restaurant_id, name, translations, sort_order) VALUES

@@ -75,6 +75,8 @@ export const UI_STRINGS = {
   thankYou: { en: "Thank you for your order!", es: "¡Gracias por tu pedido!" },
   noPhoto: { en: "Photo coming soon", es: "Foto próximamente" },
   priceVaries: { en: "Price varies", es: "Precio varía" },
+  whatsappCta: { en: "Order via WhatsApp", es: "Pedir por WhatsApp" },
+  whatsappMessage: { en: "Hi, I'd like to place an order", es: "Hola, quisiera hacer un pedido" },
 } as const satisfies Dictionary;
 
 export type UiStringKey = keyof typeof UI_STRINGS;
