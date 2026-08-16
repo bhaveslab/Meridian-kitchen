@@ -251,6 +251,76 @@
   right: 16px;
 }
 
+.st-landing-hero {
+  position: relative;
+  width: calc(100% + 48px);
+  height: clamp(200px, 34vh, 300px);
+  margin: -72px -24px 0;
+  overflow: hidden;
+}
+
+.st-landing-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  animation: st-hero-fade 16s ease-in-out infinite;
+}
+
+.st-landing-hero-img:nth-child(1) {
+  animation-delay: 0s;
+}
+.st-landing-hero-img:nth-child(2) {
+  animation-delay: -4s;
+}
+.st-landing-hero-img:nth-child(3) {
+  animation-delay: -8s;
+}
+.st-landing-hero-img:nth-child(4) {
+  animation-delay: -12s;
+}
+
+.st-landing-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(11, 10, 13, 0.25) 0%,
+    rgba(11, 10, 13, 0.35) 55%,
+    var(--surface-base) 100%
+  );
+}
+
+@keyframes st-hero-fade {
+  0% {
+    opacity: 0;
+  }
+  4% {
+    opacity: 1;
+  }
+  22% {
+    opacity: 1;
+  }
+  27% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .st-landing-hero-img {
+    animation: none;
+    opacity: 0;
+  }
+  .st-landing-hero-img:first-child {
+    opacity: 1;
+  }
+}
+
 .st-landing-rings {
   position: relative;
   width: 196px;

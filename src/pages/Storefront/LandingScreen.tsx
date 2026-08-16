@@ -19,6 +19,14 @@ export default function LandingScreen() {
 
   return (
     <div className="st-landing">
+      <div className="st-landing-hero" aria-hidden="true">
+        <img src="/menu-photos/electric-falafels.jpg" alt="" className="st-landing-hero-img" />
+        <img src="/menu-photos/black-rice-sushi.jpg" alt="" className="st-landing-hero-img" />
+        <img src="/menu-photos/berry-breeze.jpg" alt="" className="st-landing-hero-img" />
+        <img src="/menu-photos/spelt-waffles.jpg" alt="" className="st-landing-hero-img" />
+        <div className="st-landing-hero-overlay" />
+      </div>
+
       <StorefrontLangToggle className="st-landing-top" />
 
       <div className="st-landing-rings">
