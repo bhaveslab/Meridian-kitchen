@@ -5,6 +5,7 @@ import { useCart } from "../../lib/CartContext";
 import { translatedDescription, translatedName } from "../../lib/translated";
 import StorefrontLangToggle from "../../components/StorefrontLangToggle";
 import StorefrontPrice from "../../components/StorefrontPrice";
+import WhatsAppButton from "../../components/WhatsAppButton";
 import type { MenuItem, StorefrontResponse } from "../../../shared/types";
 
 export default function MenuScreen() {
@@ -36,6 +37,7 @@ export default function MenuScreen() {
         <strong style={{ fontFamily: "var(--font-display)", fontSize: 18 }}>{t("menuTitle")}</strong>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <StorefrontLangToggle />
+          <WhatsAppButton phone={storefront.restaurant.phone} variant="icon" />
           <button
             type="button"
             onClick={() => navigate(`/r/${slug}/cart`)}
