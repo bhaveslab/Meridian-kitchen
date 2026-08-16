@@ -10,7 +10,7 @@ type Dictionary = Record<string, { en: string; es: string }>;
 
 export const UI_STRINGS = {
   checkout: { en: "Checkout", es: "Pagar" },
-  backToMenu: { en: "← Back to menu", es: "← Volver al menú" },
+  startNewOrder: { en: "Start a new order", es: "Iniciar un nuevo pedido" },
   yourDetails: { en: "Your details", es: "Tus datos" },
   name: { en: "Name", es: "Nombre" },
   phone: { en: "Phone", es: "Teléfono" },

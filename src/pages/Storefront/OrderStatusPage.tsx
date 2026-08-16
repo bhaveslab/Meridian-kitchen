@@ -27,9 +27,9 @@ export default function OrderStatusPage() {
   const fetcher = useCallback(() => getOrder(orderId!), [orderId]);
   const { data: order, error } = usePolling(fetcher, 4000);
 
-  function backToMenu() {
+  function startNewOrder() {
     cart.clear();
-    navigate(`/r/${storefront.restaurant.slug}/menu`);
+    navigate(`/r/${storefront.restaurant.slug}`);
   }
 
   return (
@@ -66,8 +66,8 @@ export default function OrderStatusPage() {
             ))}
           </ul>
 
-          <button type="button" className="st-pill st-pill-outline" style={{ padding: "12px 28px" }} onClick={backToMenu}>
-            {t("backToMenu")}
+          <button type="button" className="st-pill st-pill-outline" style={{ padding: "12px 28px" }} onClick={startNewOrder}>
+            {t("startNewOrder")}
           </button>
         </>
       )}
