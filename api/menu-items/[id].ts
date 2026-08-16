@@ -1,8 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { sql, mapMenuItem } from "../_db.js";
 import { methodNotAllowed } from "../_http.js";
+import { requireDashboardAuth } from "../_auth.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (!requireDashboardAuth(req, res)) return;
   const id = req.query.id as string;
 
   if (req.method === "PATCH") {

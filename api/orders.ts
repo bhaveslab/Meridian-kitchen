@@ -1,12 +1,14 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { fetchOrders } from "./_orders.js";
 import { methodNotAllowed } from "./_http.js";
+import { requireDashboardAuth } from "./_auth.js";
 import { ORDER_STATUSES, type OrderStatus, type PaymentStatus } from "../shared/types.js";
 
 const PAYMENT_STATUSES: PaymentStatus[] = ["pending", "paid", "failed", "refunded"];
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
+  if (!requireDashboardAuth(req, res)) return;
 
   const restaurantId = typeof req.query.restaurantId === "string" ? req.query.restaurantId : undefined;
   if (!restaurantId) {
