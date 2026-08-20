@@ -72,7 +72,10 @@ export default function OrdersPanel({ restaurantId, exchangeRate }: { restaurant
             return (
               <div className="order-card" key={order.id}>
                 <div className="order-card-header">
-                  <h3>{order.customerName}</h3>
+                  <div>
+                    <h3>{order.customerName}</h3>
+                    <span className="order-number">#{order.id.slice(0, 8).toUpperCase()}</span>
+                  </div>
                   <span className={`status-badge ${order.status}`}>{order.status.replace(/_/g, " ")}</span>
                 </div>
                 <div className="order-meta">
@@ -82,7 +85,9 @@ export default function OrdersPanel({ restaurantId, exchangeRate }: { restaurant
                 {order.fulfillmentType === "delivery" && order.deliveryAddress && (
                   <div className="order-meta">{order.deliveryAddress}</div>
                 )}
-                <div className="order-meta">{order.customerPhone}</div>
+                <div className="order-meta">
+                  {t("phone")}: {order.customerPhone}
+                </div>
                 <ul className="order-items">
                   {order.items.map((item) => (
                     <li key={item.id}>
