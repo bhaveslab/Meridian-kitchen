@@ -188,6 +188,12 @@ select {
   font-size: 1.1rem;
 }
 
+.order-number {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-family: monospace;
+}
+
 .order-meta {
   color: var(--text-dim);
   font-size: 0.8rem;
