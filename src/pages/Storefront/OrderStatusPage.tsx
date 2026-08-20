@@ -6,6 +6,7 @@ import { useLanguage } from "../../lib/LanguageContext";
 import { useCart } from "../../lib/CartContext";
 import StorefrontLangToggle from "../../components/StorefrontLangToggle";
 import StorefrontPrice from "../../components/StorefrontPrice";
+import OrderProgressStepper from "../../components/OrderProgressStepper";
 import type { UiStringKey } from "../../../shared/i18n";
 import type { StorefrontResponse } from "../../../shared/types";
 
@@ -52,6 +53,9 @@ export default function OrderStatusPage() {
           <span className={`status-badge ${order.status}`} style={{ margin: "8px 0" }}>
             {order.status.replace(/_/g, " ")}
           </span>
+
+          <OrderProgressStepper status={order.status} fulfillmentType={order.fulfillmentType} />
+
           <p style={{ color: "var(--text-secondary)" }}>{t(STATUS_COPY_KEY[order.status])}</p>
           {order.status === "received" && <p style={{ color: "var(--text-secondary)" }}>{t("thankYou")}</p>}
 
