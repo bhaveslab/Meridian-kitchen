@@ -33,7 +33,7 @@ VALUES (
   'iyanus-kitchen',
   'Iyānu''s Kitchen',
   'Plant-based, alkaline/electric cuisine from Wholelistic Life Village.',
-  '+504 9579-8776',
+  '+504 3239-9269',
   true,
   26.5
 )
