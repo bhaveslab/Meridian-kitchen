@@ -35,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await client.query("BEGIN");
 
     const { rows: restaurantRows } = await client.query(
-      "SELECT slug, usd_hnl_exchange_rate FROM restaurants WHERE id = $1 AND is_active = true",
+      "SELECT slug, usd_hnl_exchange_rate, shipping_fee_domestic_cents, shipping_fee_intl_cents FROM restaurants WHERE id = $1 AND is_active = true",
       [body.restaurantId]
     );
     if (restaurantRows.length === 0) {
@@ -44,6 +44,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     restaurantSlug = restaurantRows[0].slug as string;
     const exchangeRate = restaurantRows[0].usd_hnl_exchange_rate as string;
+    const shippingDomesticCents = restaurantRows[0].shipping_fee_domestic_cents as number | null;
+    const shippingIntlCents = restaurantRows[0].shipping_fee_intl_cents as number | null;
+
+    // Only restaurants with a shipping fee configured (e.g. General Store)
+    // require a shippingZone; Kitchen's local pickup/delivery never does.
+    const chargesShipping = shippingDomesticCents != null || shippingIntlCents != null;
+    let shippingCents: number | null = null;
+    if (body.fulfillmentType === "delivery" && chargesShipping) {
+      if (body.shippingZone !== "domestic" && body.shippingZone !== "international") {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ error: "shippingZone must be 'domestic' or 'international' for this restaurant" });
+      }
+      shippingCents = body.shippingZone === "domestic" ? shippingDomesticCents : shippingIntlCents;
+    }
 
     const { rows: orderRows } = await client.query(
       `INSERT INTO orders
@@ -98,6 +112,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         [orderId, item.menuItemId, item.quantity, unitPriceCents, JSON.stringify(selectedVariants), item.specialInstructions ?? null]
       );
       lineItems.push({ name: menuItemRows[0].name as string, priceCents: unitPriceCents, quantity: item.quantity });
+    }
+
+    // Flat, once-per-order fee — not tied to any single item, so it's a
+    // Stripe line item only, not an order_items row.
+    if (shippingCents != null) {
+      lineItems.push({
+        name: body.shippingZone === "domestic" ? "Shipping (US)" : "Shipping (International)",
+        priceCents: shippingCents,
+        quantity: 1,
+      });
     }
 
     await client.query("COMMIT");

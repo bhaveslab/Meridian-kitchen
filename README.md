@@ -84,6 +84,15 @@ rows in place rather than duplicating them.
   in v1). `orders.exchange_rate_hnl_per_usd` snapshots the rate shown at
   checkout time so a later rate change doesn't retroactively alter what a
   past order's HNL estimate was.
+- **Shipping**: `restaurants.shipping_fee_domestic_cents` /
+  `shipping_fee_intl_cents` are `NULL` by default — a restaurant only
+  charges shipping if both are set (e.g. General Store, which ships
+  physical goods; Kitchen's local pickup/delivery never sets these). When
+  set and `fulfillmentType` is `"delivery"`, checkout requires a
+  `shippingZone` (`"domestic"` | `"international"`) on `CheckoutInput` and
+  adds the matching flat fee as a Stripe line item — once per order, not
+  per item. It's not stored as an `order_items` row since it isn't a menu
+  item.
 
 ## Known v1 gaps (by design)
 

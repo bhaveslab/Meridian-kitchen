@@ -23,6 +23,8 @@ export function mapRestaurant(row: any): Restaurant {
     phone: row.phone,
     isActive: row.is_active,
     usdHnlExchangeRate: Number(row.usd_hnl_exchange_rate),
+    shippingFeeDomesticCents: row.shipping_fee_domestic_cents,
+    shippingFeeIntlCents: row.shipping_fee_intl_cents,
     createdAt: row.created_at,
   };
 }
