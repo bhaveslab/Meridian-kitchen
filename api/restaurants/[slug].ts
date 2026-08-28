@@ -1,9 +1,12 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { sql, mapRestaurant, mapCategory, mapMenuItem } from "../_db.js";
-import { methodNotAllowed } from "../_http.js";
+import { methodNotAllowed, setCorsHeaders } from "../_http.js";
 import { requireDashboardAuth } from "../_auth.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  setCorsHeaders(res, ["GET", "PATCH"]);
+  if (req.method === "OPTIONS") return res.status(200).end();
+
   const slug = req.query.slug as string;
 
   if (req.method === "PATCH") {

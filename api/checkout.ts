@@ -1,10 +1,13 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { db, sql } from "./_db.js";
 import { getStripe } from "./_stripe.js";
-import { methodNotAllowed } from "./_http.js";
+import { methodNotAllowed, setCorsHeaders } from "./_http.js";
 import type { CheckoutInput, CheckoutResponse } from "../shared/types";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  setCorsHeaders(res, ["POST"]);
+  if (req.method === "OPTIONS") return res.status(200).end();
+
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
 
   const body = req.body as CheckoutInput;
