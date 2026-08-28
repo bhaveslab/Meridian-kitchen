@@ -52,6 +52,10 @@ export interface Restaurant {
   phone: string | null;
   isActive: boolean;
   usdHnlExchangeRate: number;
+  // Flat, once-per-order shipping fee in USD cents. Null when this
+  // restaurant doesn't charge shipping (e.g. Kitchen's local pickup/delivery).
+  shippingFeeDomesticCents: number | null;
+  shippingFeeIntlCents: number | null;
   createdAt: string;
 }
 
@@ -123,6 +127,10 @@ export interface CheckoutInput {
   customerEmail?: string;
   fulfillmentType: FulfillmentType;
   deliveryAddress?: string;
+  // Required only when the restaurant has a shipping fee configured
+  // (shippingFeeDomesticCents/shippingFeeIntlCents set) and fulfillmentType
+  // is "delivery" — determines which flat fee gets charged.
+  shippingZone?: "domestic" | "international";
   notes?: string;
   items: CreateOrderItemInput[];
 }

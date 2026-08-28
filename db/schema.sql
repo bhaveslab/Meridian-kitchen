@@ -37,6 +37,12 @@ CREATE TABLE IF NOT EXISTS restaurants (
   -- Display-only estimate for showing HNL alongside the real USD charge.
   -- Manually maintained in v1 (no live FX feed), editable from the dashboard.
   usd_hnl_exchange_rate NUMERIC(10, 4) NOT NULL DEFAULT 26.5,
+  -- Flat, once-per-order shipping fee in USD cents. NULL means this
+  -- restaurant doesn't charge shipping (e.g. Iyānu's Kitchen, local
+  -- pickup/delivery only) — checkout.ts only requires/charges a shipping
+  -- fee when one of these is set, so this stays opt-in per restaurant.
+  shipping_fee_domestic_cents INTEGER,
+  shipping_fee_intl_cents INTEGER,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
