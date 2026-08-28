@@ -259,6 +259,28 @@ select {
   color: var(--accent);
 }
 
+.restaurant-tabs {
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.restaurant-tabs a {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.restaurant-tabs a.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--surface-2);
+}
+
 .table-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

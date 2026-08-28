@@ -95,6 +95,14 @@ export default function DashboardPage() {
           <LanguageToggle />
         </div>
       </div>
+      <div className="tabs restaurant-tabs">
+        <Link to="/dashboard/iyanus-kitchen" className={slug === "iyanus-kitchen" ? "active" : ""}>
+          Iyānu's Kitchen
+        </Link>
+        <Link to="/dashboard/general-store" className={slug === "general-store" ? "active" : ""}>
+          General Store
+        </Link>
+      </div>
       <div className="form-row" style={{ alignItems: "center" }}>
         <label htmlFor="exchange-rate">{t("exchangeRateLabel")}</label>
         <input
