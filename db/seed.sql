@@ -202,3 +202,105 @@ ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name, description = EXCLUDED.description, translations = EXCLUDED.translations,
   image_url = EXCLUDED.image_url, price_cents = EXCLUDED.price_cents, needs_pricing = EXCLUDED.needs_pricing,
   food_guide_tags = EXCLUDED.food_guide_tags, sort_order = EXCLUDED.sort_order;
+
+-- General Store (Wholelistic Life Village) — nested into the same
+-- multi-tenant schema as Iyānu's Kitchen. IDs below are the real
+-- production values (this restaurant was created directly against the
+-- live DB before being folded into this file, so IDs had to match what's
+-- already live, not be freshly generated). No translations — this
+-- catalog is only ever rendered by generalstore.html (SiteGround),
+-- not this app's bilingual React storefront.
+--
+-- Shipping is flat and once-per-order ($8 domestic / $15 international),
+-- not per-item — see shipping_fee_domestic_cents/shipping_fee_intl_cents
+-- below and api/checkout.ts. Kitchen leaves both NULL (no shipping
+-- charge; local pickup/delivery only). The Portal Tee's old per-item
+-- "+ shipping (≈$36 total)" note is stale now that shipping is a flat
+-- $8/$15 added automatically at checkout — cleared to match the other
+-- tees rather than carried forward as misleading copy.
+--
+-- Batana Oil — Gallon is inquiry-only (too heavy for the flat shipping
+-- rate): is_available = false so /api/restaurants/general-store never
+-- returns it, but it stays visible in the dashboard for staff.
+INSERT INTO restaurants
+  (id, slug, name, description, address, phone, is_active, usd_hnl_exchange_rate,
+   shipping_fee_domestic_cents, shipping_fee_intl_cents)
+VALUES (
+  'd2f9e5ea-ad72-4841-bac9-8893f965fd81',
+  'general-store',
+  'General Store',
+  'What the village makes, grows, and wears.',
+  'Cordillera Nombre de Dios, La Ceiba, Honduras',
+  NULL,
+  true,
+  26.5,
+  800,
+  1500
+)
+ON CONFLICT (id) DO UPDATE SET
+  slug = EXCLUDED.slug, name = EXCLUDED.name, description = EXCLUDED.description,
+  address = EXCLUDED.address, phone = EXCLUDED.phone, is_active = EXCLUDED.is_active,
+  shipping_fee_domestic_cents = EXCLUDED.shipping_fee_domestic_cents,
+  shipping_fee_intl_cents = EXCLUDED.shipping_fee_intl_cents;
+
+INSERT INTO menu_categories (id, restaurant_id, name, sort_order) VALUES
+  ('7405c32c-2756-47bc-8c50-1e9274487408', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', 'Body & Wellness', 1),
+  ('e13ecbb5-ed25-47e4-a423-9b7d0e0f667b', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', 'Cacao', 2),
+  ('d3c9a6a6-b3b3-4422-865f-79351964a140', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', 'Wear the Village', 3)
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name, sort_order = EXCLUDED.sort_order;
+
+-- Body & Wellness
+INSERT INTO menu_items
+  (id, restaurant_id, category_id, name, description, price_cents, needs_pricing, is_available, sort_order, variant_options)
+VALUES
+  ('31060b23-83b2-4b6d-a103-802eb4ad1193', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', '7405c32c-2756-47bc-8c50-1e9274487408',
+   'Batana Oil — Liter', NULL, 13500, false, true, 1, '[]'),
+  ('cbdf5f5d-ac50-45f0-a059-4aecbc1b8257', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', '7405c32c-2756-47bc-8c50-1e9274487408',
+   'Batana Oil — Gallon', NULL, 45000, false, false, 2, '[]'),
+  ('98c7616e-e843-4d57-a145-0152a8c725f0', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', '7405c32c-2756-47bc-8c50-1e9274487408',
+   'Sea Moss', NULL, 0, true, false, 3, '[]'),
+  ('c64f202b-e462-4e97-9cc4-84f28a09fa38', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', '7405c32c-2756-47bc-8c50-1e9274487408',
+   'The Herbal Plumber', 'Detox blend. A month''s supply.', 13500, false, true, 4, '[]'),
+  ('f718765c-6e3f-40fd-ac6d-9d5ef16f85dd', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', '7405c32c-2756-47bc-8c50-1e9274487408',
+   'The Bitter Truth', 'Herbal blend. A month''s supply.', 13500, false, true, 5, '[]'),
+  ('523a6729-2260-4f45-baac-ec16f992e634', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', '7405c32c-2756-47bc-8c50-1e9274487408',
+   'The Olmeca', 'A month''s supply.', 13500, false, true, 6, '[]'),
+  ('8253b34c-a6e8-4682-9510-4ed8faec8cff', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', '7405c32c-2756-47bc-8c50-1e9274487408',
+   'Special Needs', 'Herbal blend. A month''s supply.', 13500, false, true, 7, '[]')
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name, description = EXCLUDED.description, price_cents = EXCLUDED.price_cents,
+  needs_pricing = EXCLUDED.needs_pricing, is_available = EXCLUDED.is_available, sort_order = EXCLUDED.sort_order,
+  variant_options = EXCLUDED.variant_options;
+
+-- Cacao
+INSERT INTO menu_items
+  (id, restaurant_id, category_id, name, description, price_cents, needs_pricing, is_available, sort_order, variant_options)
+VALUES
+  ('01560d3c-2034-4a10-961c-c8b6fa0df3ff', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', 'e13ecbb5-ed25-47e4-a423-9b7d0e0f667b',
+   'Cacao — By the Bag', NULL, 0, true, false, 1, '[]'),
+  ('0b09d03c-e5c2-4630-86b4-4fe408c8af8e', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', 'e13ecbb5-ed25-47e4-a423-9b7d0e0f667b',
+   'Cacao — Bulk', NULL, 0, true, false, 2, '[]')
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name, description = EXCLUDED.description, price_cents = EXCLUDED.price_cents,
+  needs_pricing = EXCLUDED.needs_pricing, is_available = EXCLUDED.is_available, sort_order = EXCLUDED.sort_order,
+  variant_options = EXCLUDED.variant_options;
+
+-- Wear the Village
+INSERT INTO menu_items
+  (id, restaurant_id, category_id, name, description, price_cents, needs_pricing, is_available, sort_order, variant_options)
+VALUES
+  ('c8d0d18d-057b-41b1-891d-d49f5d50cc70', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', 'd3c9a6a6-b3b3-4422-865f-79351964a140',
+   'The Portal Tee', NULL, 2799, false, true, 1, '[]'),
+  ('f480bb90-6ece-4640-94ab-234f8d2d33f7', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', 'd3c9a6a6-b3b3-4422-865f-79351964a140',
+   'The Union Tee', NULL, 2700, false, true, 2, '[]'),
+  ('c953dd57-4a51-41ff-94d4-54ec30066e68', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', 'd3c9a6a6-b3b3-4422-865f-79351964a140',
+   'The Key Tee', NULL, 2700, false, true, 3, '[]'),
+  ('5abb2d00-56a2-471a-a72c-3edc39fc8b19', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', 'd3c9a6a6-b3b3-4422-865f-79351964a140',
+   'The Balance Tee', NULL, 2700, false, true, 4, '[]'),
+  ('31da474c-4c1b-4049-87bb-f871a659ae5d', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', 'd3c9a6a6-b3b3-4422-865f-79351964a140',
+   '4-Shirt Bundle', 'The Union, Key, Balance & Portal Tees — one of each.', 10800, false, true, 5, '[]')
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name, description = EXCLUDED.description, price_cents = EXCLUDED.price_cents,
+  needs_pricing = EXCLUDED.needs_pricing, is_available = EXCLUDED.is_available, sort_order = EXCLUDED.sort_order,
+  variant_options = EXCLUDED.variant_options;
