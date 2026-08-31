@@ -93,6 +93,14 @@ rows in place rather than duplicating them.
   adds the matching flat fee as a Stripe line item — once per order, not
   per item. It's not stored as an `order_items` row since it isn't a menu
   item.
+- **External storefronts**: `restaurants.external_storefront_url` is
+  `NULL` for any restaurant using this app's own `/r/:slug/...` guest
+  flow. When set (General Store's `generalstore.html`, hosted on
+  SiteGround, outside this app), `checkout.ts` redirects Stripe's
+  success/cancel back to that URL (`?checkout=success` /
+  `?checkout=cancelled`) instead of an in-app route that wouldn't exist
+  there — otherwise a successful payment lands the guest on a 404 even
+  though the order and charge went through correctly.
 
 ## Known v1 gaps (by design)
 

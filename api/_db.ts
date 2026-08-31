@@ -25,6 +25,7 @@ export function mapRestaurant(row: any): Restaurant {
     usdHnlExchangeRate: Number(row.usd_hnl_exchange_rate),
     shippingFeeDomesticCents: row.shipping_fee_domestic_cents,
     shippingFeeIntlCents: row.shipping_fee_intl_cents,
+    externalStorefrontUrl: row.external_storefront_url,
     createdAt: row.created_at,
   };
 }

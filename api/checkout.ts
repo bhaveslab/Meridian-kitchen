@@ -32,13 +32,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const client = await db.connect();
   let orderId: string | undefined;
   let restaurantSlug: string | undefined;
+  let externalStorefrontUrl: string | null = null;
   const lineItems: { name: string; priceCents: number; quantity: number }[] = [];
 
   try {
     await client.query("BEGIN");
 
     const { rows: restaurantRows } = await client.query(
-      "SELECT slug, usd_hnl_exchange_rate, shipping_fee_domestic_cents, shipping_fee_intl_cents FROM restaurants WHERE id = $1 AND is_active = true",
+      "SELECT slug, usd_hnl_exchange_rate, shipping_fee_domestic_cents, shipping_fee_intl_cents, external_storefront_url FROM restaurants WHERE id = $1 AND is_active = true",
       [body.restaurantId]
     );
     if (restaurantRows.length === 0) {
@@ -49,6 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const exchangeRate = restaurantRows[0].usd_hnl_exchange_rate as string;
     const shippingDomesticCents = restaurantRows[0].shipping_fee_domestic_cents as number | null;
     const shippingIntlCents = restaurantRows[0].shipping_fee_intl_cents as number | null;
+    externalStorefrontUrl = restaurantRows[0].external_storefront_url as string | null;
 
     // Only restaurants with a shipping fee configured (e.g. General Store)
     // require a shippingZone; Kitchen's local pickup/delivery never does.
@@ -136,6 +138,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const origin = (req.headers.origin as string) || `https://${req.headers.host}`;
+  // Restaurants with a storefront outside this app (external_storefront_url
+  // set) don't have an in-app /r/:slug/... route to redirect back to —
+  // that route only exists in this app's own React storefront.
+  const successUrl = externalStorefrontUrl
+    ? `${externalStorefrontUrl}?checkout=success&session_id={CHECKOUT_SESSION_ID}`
+    : `${origin}/r/${restaurantSlug}/order/${orderId}?session_id={CHECKOUT_SESSION_ID}`;
+  const cancelUrl = externalStorefrontUrl
+    ? `${externalStorefrontUrl}?checkout=cancelled`
+    : `${origin}/r/${restaurantSlug}?checkout=cancelled`;
+
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
@@ -148,8 +160,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     })),
     metadata: { orderId },
-    success_url: `${origin}/r/${restaurantSlug}/order/${orderId}?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/r/${restaurantSlug}?checkout=cancelled`,
+    success_url: successUrl,
+    cancel_url: cancelUrl,
   });
 
   await sql`

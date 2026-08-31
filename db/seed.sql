@@ -222,9 +222,14 @@ ON CONFLICT (id) DO UPDATE SET
 -- Batana Oil — Gallon is inquiry-only (too heavy for the flat shipping
 -- rate): is_available = false so /api/restaurants/general-store never
 -- returns it, but it stays visible in the dashboard for staff.
+--
+-- external_storefront_url: General Store's guest-facing storefront is
+-- generalstore.html on SiteGround, not this app's /r/:slug/... route —
+-- checkout.ts redirects Stripe's success/cancel back there instead of
+-- assuming an in-app route exists. Kitchen leaves this NULL.
 INSERT INTO restaurants
   (id, slug, name, description, address, phone, is_active, usd_hnl_exchange_rate,
-   shipping_fee_domestic_cents, shipping_fee_intl_cents)
+   shipping_fee_domestic_cents, shipping_fee_intl_cents, external_storefront_url)
 VALUES (
   'd2f9e5ea-ad72-4841-bac9-8893f965fd81',
   'general-store',
@@ -235,13 +240,15 @@ VALUES (
   true,
   26.5,
   800,
-  1500
+  1500,
+  'https://wholelisticlyfe.com/generalstore.html'
 )
 ON CONFLICT (id) DO UPDATE SET
   slug = EXCLUDED.slug, name = EXCLUDED.name, description = EXCLUDED.description,
   address = EXCLUDED.address, phone = EXCLUDED.phone, is_active = EXCLUDED.is_active,
   shipping_fee_domestic_cents = EXCLUDED.shipping_fee_domestic_cents,
-  shipping_fee_intl_cents = EXCLUDED.shipping_fee_intl_cents;
+  shipping_fee_intl_cents = EXCLUDED.shipping_fee_intl_cents,
+  external_storefront_url = EXCLUDED.external_storefront_url;
 
 INSERT INTO menu_categories (id, restaurant_id, name, sort_order) VALUES
   ('7405c32c-2756-47bc-8c50-1e9274487408', 'd2f9e5ea-ad72-4841-bac9-8893f965fd81', 'Body & Wellness', 1),
