@@ -56,6 +56,10 @@ export interface Restaurant {
   // restaurant doesn't charge shipping (e.g. Kitchen's local pickup/delivery).
   shippingFeeDomesticCents: number | null;
   shippingFeeIntlCents: number | null;
+  // Set only when this restaurant's storefront is hosted outside this app
+  // (e.g. General Store's generalstore.html). Null means the in-app
+  // /r/:slug/... route exists and checkout redirects there as usual.
+  externalStorefrontUrl: string | null;
   createdAt: string;
 }
 

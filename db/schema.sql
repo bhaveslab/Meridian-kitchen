@@ -43,6 +43,13 @@ CREATE TABLE IF NOT EXISTS restaurants (
   -- fee when one of these is set, so this stays opt-in per restaurant.
   shipping_fee_domestic_cents INTEGER,
   shipping_fee_intl_cents INTEGER,
+  -- Set only for restaurants whose guest-facing storefront lives outside
+  -- this app (e.g. General Store's generalstore.html on SiteGround).
+  -- When set, checkout.ts redirects Stripe's success/cancel back to this
+  -- URL instead of assuming the in-app /r/:slug/... route exists — that
+  -- route doesn't exist on an external static site. NULL for Kitchen and
+  -- any future in-app restaurant, which keep using /r/:slug/... as-is.
+  external_storefront_url TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
